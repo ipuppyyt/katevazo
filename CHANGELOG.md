@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-30
+
 ### Added
 
 - Download whole YouTube playlists and channels: tick the videos you want, or take them all.
@@ -50,6 +52,7 @@ First public release.
 - The progress bar no longer jumps up and down when video and audio are downloaded as
   separate streams, and it stays put across pauses.
 
-[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ipuppyyt/katevazo/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/ipuppyyt/katevazo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ipuppyyt/katevazo/releases/tag/v0.1.0
