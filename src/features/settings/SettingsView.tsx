@@ -120,6 +120,20 @@ export function SettingsView() {
               onChange={(watch_clipboard) => save({ ...settings, watch_clipboard })}
             />
           </div>
+          <div className={styles.row}>
+            <span className={styles.label}>Appearance</span>
+            <Segmented
+              label="Appearance"
+              value={settings.theme}
+              options={THEMES}
+              onChange={(theme: Theme) => save({ ...settings, theme })}
+            />
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2 className={styles.heading}>Files</h2>
+        <div className={styles.group}>
           <div className={styles.stack}>
             <div className={styles.label}>
               <span>File name</span>
@@ -157,20 +171,6 @@ export function SettingsView() {
               <code className={styles.preview}>{previewTemplate(template)}.mp4</code>
             )}
           </div>
-          <div className={styles.row}>
-            <span className={styles.label}>Appearance</span>
-            <Segmented
-              label="Appearance"
-              value={settings.theme}
-              options={THEMES}
-              onChange={(theme: Theme) => save({ ...settings, theme })}
-            />
-          </div>
-        </div>
-      </section>
-      <section>
-        <h2 className={styles.heading}>Files</h2>
-        <div className={styles.group}>
           <div className={styles.row}>
             <div className={styles.label}>
               <span>Embed metadata</span>
