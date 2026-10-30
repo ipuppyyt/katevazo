@@ -1,0 +1,170 @@
+.shell {
+  display: flex;
+  height: 100%;
+}
+
+// ---- Sidebar -------------------------------------------------------------
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar);
+  border-right: 0.5px solid var(--separator);
+}
+
+.sidebarTop {
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  flex-shrink: 0;
+}
+
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-2);
+
+  button {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    height: 28px;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: default;
+
+    svg {
+      color: var(--accent);
+    }
+    span {
+      flex: 1;
+    }
+    em {
+      min-width: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      font-size: 11px;
+      font-style: normal;
+      font-weight: 600;
+      text-align: center;
+    }
+    &:hover {
+      background: var(--hover);
+    }
+    &[data-active="true"] {
+      background: var(--selected);
+    }
+    &:focus-visible {
+      outline: 3px solid var(--accent-tint);
+    }
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+
+  img {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// ---- Main pane -----------------------------------------------------------
+
+.pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.toolbar {
+  height: var(--toolbar-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) 0 var(--space-5);
+  border-bottom: 0.5px solid var(--separator);
+}
+
+// Windows caption buttons sit flush in the corner, so drop the right padding there.
+:global(html[data-platform="windows"]) .toolbar {
+  padding-right: 0;
+}
+:global(html[data-platform="linux"]) .toolbar {
+  padding-right: var(--space-3);
+}
+
+.titleBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  pointer-events: none;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// The title must not swallow drags that start on it.
+.title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.slot {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5);
+}
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-height: 100%;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+// macOS: leave room for the native traffic lights that overlay the sidebar.
+:global(html[data-platform="mac"]) .sidebarTop {
+  padding-left: 80px;
+}

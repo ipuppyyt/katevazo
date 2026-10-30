@@ -1,0 +1,90 @@
+@use "../../styles/mixins" as *;
+
+.count {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.clear {
+  @include button-tinted;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 0.5px solid var(--separator);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 0.5px solid var(--separator);
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  flex-shrink: 0;
+}
+
+.text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta,
+.file {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+
+  svg {
+    opacity: 0.55;
+    margin-bottom: var(--space-1);
+  }
+  h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+}
+
+.error {
+  color: var(--danger);
+  user-select: text;
+}

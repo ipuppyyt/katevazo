@@ -1,0 +1,133 @@
+@use "../../styles/mixins" as *;
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-2);
+
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  button {
+    @include button-tinted;
+  }
+}
+
+// Flat table-style list: rows separated by hairlines, highlighted on hover.
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 0.5px solid var(--separator);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 0.5px solid var(--separator);
+  border-radius: 0;
+
+  &:hover {
+    background: var(--hover);
+  }
+  &[data-status="cancelled"] {
+    opacity: 0.55;
+  }
+}
+
+.thumb {
+  width: 72px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--fill-subtle);
+  box-shadow: 0 0 0 0.5px var(--separator);
+  flex-shrink: 0;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--fill-subtle);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--fill);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+[data-status="paused"] .fill {
+  background: var(--warning);
+}
+[data-status="done"] .fill {
+  background: var(--success);
+}
+[data-status="error"] .fill {
+  background: var(--danger);
+}
+
+.status {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-status="error"] .status {
+  color: var(--danger);
+}
+
+// Fixed width so progress bars line up whether a row has one button or two.
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.icon {
+  @include button-icon;
+}

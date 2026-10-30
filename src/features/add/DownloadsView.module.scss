@@ -1,0 +1,58 @@
+@use "../../styles/mixins" as *;
+
+// Search-style field that lives in the window toolbar.
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  max-width: 460px;
+}
+
+.searchIcon {
+  display: flex;
+  margin-right: -26px; // sits inside the input
+  padding-left: 8px;
+  color: var(--text-muted);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.search input {
+  @include text-field;
+  flex: 1;
+  min-width: 0;
+  padding-left: 26px;
+}
+
+.search button {
+  @include button-filled;
+}
+
+.error {
+  @include card;
+  color: var(--danger);
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  text-align: center;
+
+  svg {
+    opacity: 0.55;
+    margin-bottom: var(--space-1);
+  }
+  h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+  }
+}

@@ -1,0 +1,62 @@
+@use "tokens";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+  overflow: hidden; // only the content pane scrolls, like a native app
+}
+
+// Text the user may want to copy.
+input,
+code {
+  user-select: text;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+// Used for file paths and versions: system font, like Finder's path labels.
+code {
+  font-family: inherit;
+  font-size: 12px;
+}
+
+::selection {
+  background: var(--accent-tint);
+}
+
+// Thin overlay-style scrollbars.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fill) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

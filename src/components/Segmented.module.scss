@@ -1,0 +1,27 @@
+// macOS segmented control: compact, rounded-rectangle, raised selected segment.
+.control {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--fill-subtle);
+
+  button {
+    appearance: none;
+    border: 0;
+    border-radius: 5px;
+    padding: 1px 12px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    cursor: default;
+    transition: background 0.15s ease;
+
+    &[data-active="true"] {
+      background: var(--control);
+      box-shadow: 0 0 0 0.5px var(--field-border), 0 1px 2px rgba(0, 0, 0, 0.12);
+    }
+    &:focus-visible {
+      outline: 3px solid var(--accent-tint);
+    }
+  }
+}
