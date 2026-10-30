@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { Segmented } from "../../components/Segmented";
+import { Switch } from "../../components/Switch";
 import {
   applyTheme,
   getSettings,
@@ -85,6 +86,33 @@ export function SettingsView() {
               value={settings.theme}
               options={THEMES}
               onChange={(theme: Theme) => save({ ...settings, theme })}
+            />
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2 className={styles.heading}>Files</h2>
+        <div className={styles.group}>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Embed metadata</span>
+              <small>Save the title, uploader and chapters inside the file</small>
+            </div>
+            <Switch
+              label="Embed metadata"
+              checked={settings.embed_metadata}
+              onChange={(embed_metadata) => save({ ...settings, embed_metadata })}
+            />
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Embed cover art</span>
+              <small>Use the thumbnail as the cover (not supported in WebM or WAV)</small>
+            </div>
+            <Switch
+              label="Embed cover art"
+              checked={settings.embed_thumbnail}
+              onChange={(embed_thumbnail) => save({ ...settings, embed_thumbnail })}
             />
           </div>
         </div>

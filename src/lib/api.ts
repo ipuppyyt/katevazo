@@ -97,6 +97,8 @@ export type Theme = "system" | "light" | "dark";
 export interface Settings {
   download_dir: string | null;
   theme: Theme;
+  embed_metadata: boolean;
+  embed_thumbnail: boolean;
 }
 
 export interface HistoryEntry {

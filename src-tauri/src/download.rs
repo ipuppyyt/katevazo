@@ -173,6 +173,11 @@ pub struct Options {
     pub audio_bitrate: Option<u32>,
     #[serde(default)]
     pub subtitles: Option<Subtitles>,
+    /// Both come from the user's settings rather than from the caller.
+    #[serde(skip)]
+    pub embed_metadata: bool,
+    #[serde(skip)]
+    pub embed_thumbnail: bool,
     /// Overrides the default Downloads folder.
     pub dir: Option<String>,
     /// Display title recorded in history.
@@ -385,6 +390,13 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
             }
         }
     }
+    if options.embed_metadata {
+        a.push("--embed-metadata".into());
+    }
+    if options.embed_thumbnail {
+        // Cover art must be JPEG or PNG; YouTube serves WebP.
+        a.extend(["--embed-thumbnail".into(), "--convert-thumbnails".into(), "jpg".into()]);
+    }
     if let Some(s) = options.subtitles.as_ref().filter(|s| s.is_valid()) {
         a.extend(["--write-subs".into(), "--sub-langs".into(), s.lang.clone()]);
         if s.auto {
@@ -457,10 +469,13 @@ pub async fn start_download(
     app: AppHandle,
     state: State<'_, DownloadState>,
     url: String,
-    options: Options,
+    mut options: Options,
 ) -> Result<String, String> {
     let id = state.next_id.fetch_add(1, Ordering::Relaxed).to_string();
-    let out_dir: PathBuf = match options.dir.clone().or(settings::load(&app).download_dir) {
+    let prefs = settings::load(&app);
+    options.embed_metadata = prefs.embed_metadata;
+    options.embed_thumbnail = prefs.embed_thumbnail;
+    let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
     };
@@ -748,6 +763,8 @@ mod tests {
             audio_format: AudioFormat::default(),
             audio_bitrate: None,
             subtitles: None,
+            embed_metadata: false,
+            embed_thumbnail: false,
             dir: None,
             title: None,
         }
@@ -877,6 +894,20 @@ mod tests {
         o.audio_bitrate = Some(320);
         let args = build_args(&o, "/tmp", None, "u");
         assert!(flag(&args, "--audio-quality").is_none());
+    }
+
+    #[test]
+    fn embeds_metadata_and_cover_art_when_enabled() {
+        let mut o = opts(Kind::Audio, None);
+        let plain = build_args(&o, "/tmp", None, "u");
+        assert!(!plain.contains(&"--embed-metadata".to_string()));
+        assert!(!plain.contains(&"--embed-thumbnail".to_string()));
+        o.embed_metadata = true;
+        o.embed_thumbnail = true;
+        let args = build_args(&o, "/tmp", None, "u");
+        assert!(args.contains(&"--embed-metadata".to_string()));
+        assert!(args.contains(&"--embed-thumbnail".to_string()));
+        assert_eq!(flag(&args, "--convert-thumbnails").unwrap(), "jpg");
     }
 
     #[test]

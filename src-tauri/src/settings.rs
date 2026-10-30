@@ -11,6 +11,10 @@ pub struct Settings {
     pub download_dir: Option<String>,
     /// "system", "light" or "dark".
     pub theme: String,
+    /// Write title, uploader and chapters into the downloaded file.
+    pub embed_metadata: bool,
+    /// Use the video's thumbnail as cover art where the format supports it.
+    pub embed_thumbnail: bool,
 }
 
 impl Default for Settings {
@@ -18,6 +22,8 @@ impl Default for Settings {
         Self {
             download_dir: None,
             theme: "system".into(),
+            embed_metadata: true,
+            embed_thumbnail: true,
         }
     }
 }
@@ -60,5 +66,6 @@ mod tests {
         let s: Settings = serde_json::from_str(r#"{"theme":"dark"}"#).unwrap();
         assert_eq!(s.theme, "dark");
         assert!(s.download_dir.is_none());
+        assert!(s.embed_metadata && s.embed_thumbnail);
     }
 }
