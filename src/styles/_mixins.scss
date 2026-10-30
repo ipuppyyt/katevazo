@@ -135,4 +135,11 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='14' viewBox='0 0 10 14' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 5.5l3-3 3 3M2 8.5l3 3 3-3'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 7px center;
+
+  // The list is drawn by the OS: without these it inherits the pale text but a white
+  // background in dark mode, so the choices look empty.
+  option {
+    background-color: var(--surface-2);
+    color: var(--text);
+  }
 }
