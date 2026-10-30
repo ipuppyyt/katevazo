@@ -1,7 +1,7 @@
 {
   "name": "katevazo",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A clean, cross-platform video downloader built with Tauri, Rust and React",
   "license": "MIT",
   "homepage": "https://github.com/ipuppyyt/katevazo#readme",
@@ -18,7 +18,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "sidecars": "node scripts/fetch-sidecars.mjs"
+    "sidecars": "node scripts/fetch-sidecars.mjs",
+    "installer-art": "node scripts/make-installer-art.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -29,6 +30,7 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
