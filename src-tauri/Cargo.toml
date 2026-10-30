@@ -1,6 +1,6 @@
 [package]
 name = "katevazo"
-version = "0.1.0"
+version = "0.1.1"
 description = "Katevazo - a clean, cross-platform video downloader"
 authors = ["Katevazo contributors"]
 license = "MIT"

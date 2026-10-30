@@ -6,6 +6,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-30
+
+### Added
+
+- Branded installers: the Windows setup and MSI and the macOS disk image now carry the Katevazo logo, with custom banner, sidebar and background artwork and a licence page.
+- Publisher, copyright and description metadata on all packages.
+- Optional code signing and notarisation in the release workflow, enabled when signing secrets are configured (see docs/SIGNING.md).
+
 ## [0.1.0] - 2026-10-30
 
 First public release.
@@ -27,5 +35,6 @@ First public release.
 - The progress bar no longer jumps up and down when video and audio are downloaded as
   separate streams, and it stays put across pauses.
 
-[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ipuppyyt/katevazo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ipuppyyt/katevazo/releases/tag/v0.1.0
