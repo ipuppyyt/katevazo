@@ -2,6 +2,16 @@
   "name": "katevazo",
   "private": true,
   "version": "0.1.0",
+  "description": "A clean, cross-platform video downloader built with Tauri, Rust and React",
+  "license": "MIT",
+  "homepage": "https://github.com/ipuppyyt/katevazo#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipuppyyt/katevazo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ipuppyyt/katevazo/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

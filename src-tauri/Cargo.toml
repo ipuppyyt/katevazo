@@ -2,7 +2,10 @@
 name = "katevazo"
 version = "0.1.0"
 description = "Katevazo - a clean, cross-platform video downloader"
-authors = ["Artis Horizon"]
+authors = ["Katevazo contributors"]
+license = "MIT"
+repository = "https://github.com/ipuppyyt/katevazo"
+homepage = "https://github.com/ipuppyyt/katevazo"
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -1,0 +1,59 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please search existing issues first.
+        If downloads suddenly fail for a site, try **Settings → Check for Updates** (yt-dlp) first.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Paste the link …
+        2. Click …
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Example link (if relevant and public)
+  - type: input
+    id: version
+    attributes:
+      label: Katevazo version
+      placeholder: "0.1.0 or commit hash"
+    validations:
+      required: true
+  - type: input
+    id: ytdlp
+    attributes:
+      label: yt-dlp version
+      description: Shown in Settings → Download engine.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "Windows 11 23H2, macOS 14.5, Ubuntu 24.04 …"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or logs
+      description: Paste any error shown in the app. Remove private information first.
+      render: shell
