@@ -41,6 +41,19 @@ export interface Playlist {
 export const fetchPlaylist = (url: string) =>
   invoke<Playlist>("fetch_playlist", { url });
 
+/** True for a link Katevazo can download; so far that means YouTube. */
+export function isVideoUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw.trim());
+    return (
+      (u.protocol === "https:" || u.protocol === "http:") &&
+      /^(www\.|m\.|music\.)?(youtube\.com|youtu\.be)$/.test(u.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 /** True for YouTube playlist and channel links, which list many videos. */
 export function isPlaylistUrl(raw: string): boolean {
   try {
@@ -100,6 +113,7 @@ export interface Settings {
   embed_metadata: boolean;
   embed_thumbnail: boolean;
   filename_template: string;
+  watch_clipboard: boolean;
 }
 
 /** Fields usable in a filename template, with an example value for the live preview. */

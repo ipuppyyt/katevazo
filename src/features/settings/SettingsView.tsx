@@ -98,6 +98,17 @@ export function SettingsView() {
               Choose…
             </button>
           </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Watch the clipboard</span>
+              <small>Offer to download a video link when you copy one</small>
+            </div>
+            <Switch
+              label="Watch the clipboard"
+              checked={settings.watch_clipboard}
+              onChange={(watch_clipboard) => save({ ...settings, watch_clipboard })}
+            />
+          </div>
           <div className={styles.stack}>
             <div className={styles.label}>
               <span>File name</span>

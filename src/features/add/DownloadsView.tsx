@@ -13,6 +13,7 @@ import { useQueue } from "../queue/store";
 import styles from "./DownloadsView.module.scss";
 import { MetadataCard } from "./MetadataCard";
 import { PlaylistCard } from "./PlaylistCard";
+import { useClipboardLink } from "./useClipboardLink";
 
 export function DownloadsView({ active }: { active: boolean }) {
   const hasJobs = useQueue((s) => s.jobs.length > 0);
@@ -22,10 +23,16 @@ export function DownloadsView({ active }: { active: boolean }) {
   const [meta, setMeta] = useState<Metadata | null>(null);
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
+  const clipboard = useClipboardLink(active);
+
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const trimmed = url.trim();
+    load(url.trim());
+  }
+
+  async function load(trimmed: string) {
     if (!trimmed) return;
+    clipboard.dismiss();
     setLoading(true);
     setError(null);
     setMeta(null);
@@ -60,6 +67,26 @@ export function DownloadsView({ active }: { active: boolean }) {
             </button>
           </form>
         </ToolbarSlot>
+      )}
+      {clipboard.link && (
+        <div className={styles.offer}>
+          <Icon name="link" size={14} />
+          <span className={styles.offerText}>
+            Link copied: <strong>{clipboard.link}</strong>
+          </span>
+          <button
+            className={styles.offerPrimary}
+            onClick={() => {
+              setUrl(clipboard.link!);
+              load(clipboard.link!);
+            }}
+          >
+            Fetch
+          </button>
+          <button className={styles.offerPlain} onClick={clipboard.dismiss}>
+            Dismiss
+          </button>
+        </div>
       )}
       {error && <div className={styles.error}>{error}</div>}
       {meta && <MetadataCard meta={meta} url={url.trim()} />}
