@@ -1,9 +1,10 @@
-// Fetches yt-dlp and ffmpeg for the host platform into src-tauri/binaries using the
+// Fetches yt-dlp, ffmpeg and Deno for the host platform into src-tauri/binaries using the
 // `<name>-<target-triple>[.exe]` naming that Tauri's `externalBin` requires.
 // Run on each OS (CI does this per matrix entry): `npm run sidecars`.
-import { execSync } from "node:child_process";
-import { chmodSync, copyFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { execFileSync, execSync } from "node:child_process";
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,5 +42,27 @@ function copyFfmpeg() {
   console.log("ffmpeg ->", dest);
 }
 
+// Deno is the JavaScript runtime yt-dlp needs to solve YouTube's script challenges.
+// Its release archives are named after the same Rust target triple.
+async function fetchDeno() {
+  const url = `https://github.com/denoland/deno/releases/latest/download/deno-${triple}.zip`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`deno download failed: ${res.status} ${url}`);
+  const work = mkdtempSync(join(tmpdir(), "katevazo-deno-"));
+  try {
+    const zip = join(work, "deno.zip");
+    writeFileSync(zip, Buffer.from(await res.arrayBuffer()));
+    // Windows and macOS ship a tar that reads zip files; Linux runners have unzip.
+    execFileSync(process.platform === "linux" ? "unzip" : "tar", process.platform === "linux" ? ["-o", zip, "-d", work] : ["-xf", zip, "-C", work]);
+    const dest = join(outDir, `deno-${triple}${ext}`);
+    copyFileSync(join(work, `deno${ext}`), dest);
+    chmodSync(dest, 0o755);
+    console.log("deno ->", dest);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+}
+
 await fetchYtDlp();
 copyFfmpeg();
+await fetchDeno();

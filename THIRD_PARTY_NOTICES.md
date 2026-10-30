@@ -11,6 +11,7 @@ These are run as separate programs (Tauri "sidecars"); Katevazo does not link ag
 | Program | Used for | License | Source |
 | --- | --- | --- | --- |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Extracting and downloading media | The Unlicense | https://github.com/yt-dlp/yt-dlp |
+| [Deno](https://deno.com) | JavaScript runtime that yt-dlp uses to solve YouTube's script challenges | MIT | https://github.com/denoland/deno |
 | [FFmpeg](https://ffmpeg.org) | Merging video and audio, converting to MP3 | GPL-3.0-or-later (the build supplied by [`ffmpeg-static`](https://github.com/eugeneware/ffmpeg-static)) | https://ffmpeg.org/download.html |
 
 **FFmpeg and the GPL.** The FFmpeg binary that `npm run sidecars` copies from

@@ -17,6 +17,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Desktop notification when a download finishes or fails while the app is in the background.
 - Open a finished download, or show it in its folder, from the queue and from History.
 
+### Fixed
+
+- Bundle Deno so yt-dlp can solve YouTube's script challenges; without a JavaScript runtime some formats could go missing.
+
 ## [0.1.1] - 2026-10-30
 
 ### Added

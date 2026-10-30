@@ -165,14 +165,26 @@ fn managed_path(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir.join("bin").join(EXE))
 }
 
+/// The bundled Deno, which Tauri copies next to the app executable. YouTube hides its
+/// stream URLs behind a script challenge that yt-dlp can only solve with a JS runtime.
+fn deno_path() -> Option<PathBuf> {
+    let name = if cfg!(windows) { "deno.exe" } else { "deno" };
+    let p = std::env::current_exe().ok()?.parent()?.join(name);
+    p.exists().then_some(p)
+}
+
 /// Prefers the updated copy over the bundled sidecar when one exists.
 pub fn command(app: &AppHandle) -> Result<Command, String> {
     let managed = managed_path(app)?;
-    if managed.exists() {
-        Ok(app.shell().command(managed))
+    let cmd = if managed.exists() {
+        app.shell().command(managed)
     } else {
-        app.shell().sidecar("yt-dlp").map_err(|e| e.to_string())
-    }
+        app.shell().sidecar("yt-dlp").map_err(|e| e.to_string())?
+    };
+    Ok(match deno_path() {
+        Some(deno) => cmd.args(["--js-runtimes", &format!("deno:{}", deno.display())]),
+        None => cmd,
+    })
 }
 
 async fn run(app: &AppHandle, args: &[&str]) -> Result<String, String> {
