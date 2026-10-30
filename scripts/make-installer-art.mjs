@@ -65,8 +65,8 @@ const panel = (w, h) => `<defs>${brand}</defs>
 
 // NSIS
 bmp("nsis-sidebar.bmp", 164, 314, panel(164, 314));
-// Narrow, with the logo at the left edge: NSIS starts the header text right after this image.
-bmp("nsis-header.bmp", 64, 57, `<rect width="64" height="57" fill="#fff"/>${mark(10, 6, 45)}`);
+// NSIS stretches this to its fixed 150x57 slot, so keep that size; logo at the left edge.
+bmp("nsis-header.bmp", 150, 57, `<rect width="150" height="57" fill="#fff"/>${mark(10, 6, 45)}`);
 
 // WiX (MSI)
 bmp("wix-dialog.bmp", 493, 312, `<rect width="493" height="312" fill="#fff"/>${panel(164, 312)}`);

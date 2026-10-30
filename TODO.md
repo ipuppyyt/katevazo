@@ -4,8 +4,8 @@ Ideas for Katevazo, roughly in the order we plan to build them. Tick a box when 
 is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
-> **Before the next release:** run the installer once and check the header logo and text are
-> flush left (narrowed header image in `bd9fc42`, not yet seen in a real installer).
+> **Before the next release:** run the installer once and check the header logo is not stretched
+> and that the logo and text sit where you expect (NSIS stretches the header image to 150x57).
 ## Next up: high value, low effort
 
 - [x] **Playlists and channels:** list a playlist's videos, tick the ones to download, or download all
