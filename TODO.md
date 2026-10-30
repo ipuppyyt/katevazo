@@ -12,7 +12,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [x] **Filename templates:** such as `{uploader} - {title}`, with a live preview
 - [x] **Clipboard detection:** offer to download when a supported link is copied
 - [x] **Notifications:** tell the user when a download finishes or fails in the background
-- [ ] **Open file or folder** actions on finished downloads
+- [x] **Open file or folder** actions on finished downloads
 
 ## Power-user features
 

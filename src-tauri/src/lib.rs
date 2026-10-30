@@ -1,4 +1,5 @@
 mod download;
+mod files;
 mod history;
 mod notify;
 mod settings;
@@ -18,6 +19,8 @@ pub fn run() {
             ytdlp::ytdlp_version,
             ytdlp::fetch_metadata,
             ytdlp::fetch_playlist,
+            files::open_file,
+            files::reveal_file,
             ytdlp::update_ytdlp,
             download::start_download,
             download::pause_download,

@@ -15,6 +15,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Filename templates such as {uploader} - {title}, with sub-folders and a live preview.
 - Offer to fetch a YouTube link when you copy one (can be turned off in Settings).
 - Desktop notification when a download finishes or fails while the app is in the background.
+- Open a finished download, or show it in its folder, from the queue and from History.
 
 ## [0.1.1] - 2026-10-30
 

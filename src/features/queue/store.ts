@@ -29,6 +29,8 @@ interface QueueState {
   ) => Promise<void>;
   apply: (update: DownloadUpdate) => void;
   remove: (id: string) => void;
+  /** Shows a message on a finished job, e.g. when its file can no longer be opened. */
+  note: (id: string, message: string) => void;
   clearFinished: () => void;
 }
 
@@ -92,6 +94,8 @@ export const useQueue = create<QueueState>((set) => ({
         }),
       };
     }),
+  note: (id, message) =>
+    set((s) => ({ jobs: s.jobs.map((j) => (j.id === id ? { ...j, error: message } : j)) })),
   remove: (id) => set((s) => ({ jobs: s.jobs.filter((j) => j.id !== id) })),
   clearFinished: () =>
     set((s) => ({

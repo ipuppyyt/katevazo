@@ -88,3 +88,13 @@
   color: var(--danger);
   user-select: text;
 }
+
+.actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+
+  button {
+    @include button-icon;
+  }
+}

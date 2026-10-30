@@ -1,12 +1,21 @@
 import { useEffect, useState } from "react";
 import { Icon } from "../../components/Icon";
 import { ToolbarSlot } from "../../components/ToolbarSlot";
-import { clearHistory, listHistory, type HistoryEntry } from "../../lib/api";
+import {
+  clearHistory,
+  listHistory,
+  openFile,
+  revealFile,
+  type HistoryEntry,
+} from "../../lib/api";
 import styles from "./HistoryView.module.scss";
 
 export function HistoryView() {
   const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const act = (run: (path: string) => Promise<void>, path: string) =>
+    run(path).catch((e) => setError(String(e)));
 
   const load = () => listHistory().then(setEntries).catch((e) => setError(String(e)));
   useEffect(() => void load(), []);
@@ -52,6 +61,20 @@ export function HistoryView() {
               </span>
               {h.file && <code className={styles.file}>{h.file}</code>}
             </div>
+            {h.file && (
+              <div className={styles.actions}>
+                <button title="Open" aria-label="Open" onClick={() => act(openFile, h.file!)}>
+                  <Icon name="play" size={14} />
+                </button>
+                <button
+                  title="Show in folder"
+                  aria-label="Show in folder"
+                  onClick={() => act(revealFile, h.file!)}
+                >
+                  <Icon name="folder" size={14} />
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>

@@ -68,6 +68,16 @@ fn list_all(conn: &Connection) -> Result<Vec<Entry>, String> {
     .map_err(|e| e.to_string())
 }
 
+fn contains_file(conn: &Connection, file: &str) -> bool {
+    conn.query_row("SELECT 1 FROM history WHERE file = ?1 LIMIT 1", [file], |_| Ok(()))
+        .is_ok()
+}
+
+/// Whether `file` was recorded as a finished download.
+pub fn has_file(app: &AppHandle, file: &str) -> bool {
+    open(app).is_ok_and(|c| contains_file(&c, file))
+}
+
 pub fn record(app: &AppHandle, title: &str, url: &str, file: Option<&str>, kind: &str) {
     if let Err(e) = open(app).and_then(|c| insert(&c, title, url, file, kind)) {
         eprintln!("could not record history: {e}");
@@ -101,5 +111,14 @@ mod tests {
         assert_eq!(all.len(), 2);
         assert_eq!(all[0].title, "B");
         assert_eq!(all[1].file.as_deref(), Some("/a.mp4"));
+    }
+
+    #[test]
+    fn only_recorded_files_are_known() {
+        let conn = Connection::open_in_memory().unwrap();
+        init(&conn).unwrap();
+        insert(&conn, "A", "u1", Some("/a.mp4"), "video").unwrap();
+        assert!(contains_file(&conn, "/a.mp4"));
+        assert!(!contains_file(&conn, "/etc/passwd"));
     }
 }

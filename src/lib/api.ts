@@ -158,6 +158,12 @@ export function applyTheme(theme: Theme) {
 export const startDownload = (url: string, options: DownloadOptions) =>
   invoke<string>("start_download", { url, options });
 
+/** Opens a finished download in its default app. */
+export const openFile = (path: string) => invoke<void>("open_file", { path });
+
+/** Shows a finished download in the system file manager. */
+export const revealFile = (path: string) => invoke<void>("reveal_file", { path });
+
 export const pauseDownload = (id: string) =>
   invoke<void>("pause_download", { id });
 

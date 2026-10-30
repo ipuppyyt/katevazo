@@ -3,8 +3,10 @@ import {
   cancelDownload,
   formatEta,
   formatSpeed,
+  openFile,
   pauseDownload,
   resumeDownload,
+  revealFile,
 } from "../../lib/api";
 import styles from "./QueueList.module.scss";
 import { useQueue, type Job } from "./store";
@@ -27,7 +29,7 @@ function statusText(j: Job): string {
     case "paused":
       return pct ? `Paused · ${pct}` : "Paused";
     case "done":
-      return "Complete";
+      return j.error ?? "Complete";
     case "cancelled":
       return "Cancelled";
     case "error":
@@ -37,6 +39,9 @@ function statusText(j: Job): string {
 
 function Controls({ job }: { job: Job }) {
   const remove = useQueue((s) => s.remove);
+  const note = useQueue((s) => s.note);
+  const open = (path: string) => openFile(path).catch((e) => note(job.id, String(e)));
+  const reveal = (path: string) => revealFile(path).catch((e) => note(job.id, String(e)));
   switch (job.status) {
     case "queued":
     case "downloading":
@@ -70,6 +75,24 @@ function Controls({ job }: { job: Job }) {
             <Icon name="retry" size={14} />
           </button>
           <button className={styles.icon} title="Remove" aria-label="Remove" onClick={() => { cancelDownload(job.id); remove(job.id); }}>
+            <Icon name="close" size={14} />
+          </button>
+        </>
+      );
+    case "done":
+      return (
+        <>
+          {job.file && (
+            <>
+              <button className={styles.icon} title="Open" aria-label="Open" onClick={() => open(job.file!)}>
+                <Icon name="play" size={14} />
+              </button>
+              <button className={styles.icon} title="Show in folder" aria-label="Show in folder" onClick={() => reveal(job.file!)}>
+                <Icon name="folder" size={14} />
+              </button>
+            </>
+          )}
+          <button className={styles.icon} title="Remove" aria-label="Remove" onClick={() => remove(job.id)}>
             <Icon name="close" size={14} />
           </button>
         </>
