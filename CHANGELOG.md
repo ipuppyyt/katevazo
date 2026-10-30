@@ -6,6 +6,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Download whole YouTube playlists and channels: tick the videos you want, or take them all.
+- Choose the container (MP4, MKV, WebM) and preferred codec (H.264, VP9, AV1) for video, and the format (MP3, M4A, Opus, FLAC, WAV) and bitrate for audio.
+
 ## [0.1.1] - 2026-10-30
 
 ### Added

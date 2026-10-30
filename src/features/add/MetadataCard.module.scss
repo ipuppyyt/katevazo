@@ -43,18 +43,12 @@
 
 .actions {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-3);
   margin-top: auto;
   padding-top: var(--space-3);
 
-  select {
-    @include select-field;
-  }
-}
-
-.hint {
-  color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
 .primary {

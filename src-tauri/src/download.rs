@@ -67,11 +67,90 @@ pub enum Kind {
     Audio,
 }
 
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Container {
+    #[default]
+    Mp4,
+    Mkv,
+    Webm,
+}
+
+impl Container {
+    fn as_str(self) -> &'static str {
+        match self {
+            Container::Mp4 => "mp4",
+            Container::Mkv => "mkv",
+            Container::Webm => "webm",
+        }
+    }
+}
+
+/// Preferred video codec; falls back to the best available when the video has none of it.
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Codec {
+    #[default]
+    Any,
+    H264,
+    Vp9,
+    Av1,
+}
+
+impl Codec {
+    /// yt-dlp format filter, or empty for "no preference".
+    fn filter(self) -> &'static str {
+        match self {
+            Codec::Any => "",
+            Codec::H264 => "[vcodec^=avc]",
+            Codec::Vp9 => "[vcodec~='^(vp9|vp09)']",
+            Codec::Av1 => "[vcodec^=av01]",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum AudioFormat {
+    #[default]
+    Mp3,
+    M4a,
+    Opus,
+    Flac,
+    Wav,
+}
+
+impl AudioFormat {
+    fn as_str(self) -> &'static str {
+        match self {
+            AudioFormat::Mp3 => "mp3",
+            AudioFormat::M4a => "m4a",
+            AudioFormat::Opus => "opus",
+            AudioFormat::Flac => "flac",
+            AudioFormat::Wav => "wav",
+        }
+    }
+
+    /// Lossless formats have no bitrate to choose.
+    fn is_lossy(self) -> bool {
+        !matches!(self, AudioFormat::Flac | AudioFormat::Wav)
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Options {
     pub kind: Kind,
     /// Maximum video height (e.g. 1080); `None` means best available.
     pub height: Option<u32>,
+    #[serde(default)]
+    pub container: Container,
+    #[serde(default)]
+    pub codec: Codec,
+    #[serde(default)]
+    pub audio_format: AudioFormat,
+    /// Audio bitrate in kbit/s; `None` means the best quality.
+    #[serde(default)]
+    pub audio_bitrate: Option<u32>,
     /// Overrides the default Downloads folder.
     pub dir: Option<String>,
     /// Display title recorded in history.
@@ -231,6 +310,17 @@ impl Tracker {
 // Process helpers
 // ---------------------------------------------------------------------------
 
+/// Best video+audio within the height cap, preferring `codec` and falling back to anything.
+fn video_selector(height: Option<u32>, codec: Codec) -> String {
+    let h = height.map(|h| format!("[height<={h}]")).unwrap_or_default();
+    let c = codec.filter();
+    if c.is_empty() {
+        format!("bv*{h}+ba/b{h}")
+    } else {
+        format!("bv*{c}{h}+ba/bv*{h}+ba/b{h}")
+    }
+}
+
 fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str) -> Vec<String> {
     let mut a: Vec<String> = [
         "--newline",
@@ -253,19 +343,24 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
     }
     match options.kind {
         Kind::Video => {
-            let sel = match options.height {
-                Some(h) => format!("bv*[height<={h}]+ba/b[height<={h}]"),
-                None => "bv*+ba/b".to_string(),
-            };
             a.extend([
                 "-f".into(),
-                sel,
+                video_selector(options.height, options.codec),
                 "--merge-output-format".into(),
-                "mp4".into(),
+                options.container.as_str().into(),
             ]);
         }
         Kind::Audio => {
-            a.extend(["-x".into(), "--audio-format".into(), "mp3".into()]);
+            a.extend([
+                "-x".into(),
+                "--audio-format".into(),
+                options.audio_format.as_str().into(),
+            ]);
+            if options.audio_format.is_lossy() {
+                // 0 is yt-dlp's "best"; otherwise a fixed bitrate such as 192K.
+                let quality = options.audio_bitrate.map_or("0".to_string(), |k| format!("{k}K"));
+                a.extend(["--audio-quality".into(), quality]);
+            }
         }
     }
     // `--` stops option parsing so the URL can never be read as a flag.
@@ -600,9 +695,17 @@ mod tests {
         Options {
             kind,
             height,
+            container: Container::default(),
+            codec: Codec::default(),
+            audio_format: AudioFormat::default(),
+            audio_bitrate: None,
             dir: None,
             title: None,
         }
+    }
+
+    fn flag(args: &[String], name: &str) -> Option<String> {
+        args.iter().position(|a| a == name).map(|i| args[i + 1].clone())
     }
 
     #[test]
@@ -690,5 +793,46 @@ mod tests {
     fn video_selector_caps_height() {
         let args = build_args(&opts(Kind::Video, Some(720)), "/tmp", None, "u");
         assert!(args.contains(&"bv*[height<=720]+ba/b[height<=720]".to_string()));
+    }
+
+    #[test]
+    fn codec_preference_falls_back_to_anything() {
+        let mut o = opts(Kind::Video, Some(1080));
+        o.codec = Codec::H264;
+        o.container = Container::Mkv;
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(
+            flag(&args, "-f").unwrap(),
+            "bv*[vcodec^=avc][height<=1080]+ba/bv*[height<=1080]+ba/b[height<=1080]"
+        );
+        assert_eq!(flag(&args, "--merge-output-format").unwrap(), "mkv");
+    }
+
+    #[test]
+    fn audio_format_and_bitrate() {
+        let mut o = opts(Kind::Audio, None);
+        o.audio_format = AudioFormat::M4a;
+        o.audio_bitrate = Some(192);
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--audio-format").unwrap(), "m4a");
+        assert_eq!(flag(&args, "--audio-quality").unwrap(), "192K");
+        o.audio_bitrate = None;
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--audio-quality").unwrap(), "0");
+    }
+
+    #[test]
+    fn lossless_audio_has_no_bitrate() {
+        let mut o = opts(Kind::Audio, None);
+        o.audio_format = AudioFormat::Flac;
+        o.audio_bitrate = Some(320);
+        let args = build_args(&o, "/tmp", None, "u");
+        assert!(flag(&args, "--audio-quality").is_none());
+    }
+
+    #[test]
+    fn unknown_formats_are_rejected() {
+        let bad = r#"{"kind":"video","height":null,"container":"exe"}"#;
+        assert!(serde_json::from_str::<Options>(bad).is_err());
     }
 }

@@ -1,21 +1,15 @@
 import { useState } from "react";
-import { Segmented } from "../../components/Segmented";
 import { formatDuration, type Playlist } from "../../lib/api";
 import { useQueue } from "../queue/store";
+import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./PlaylistCard.module.scss";
-
-const KINDS = [
-  { value: "video", label: "Video" },
-  { value: "audio", label: "Audio" },
-] as const;
 
 const HEIGHTS = [2160, 1440, 1080, 720, 480, 360];
 
 export function PlaylistCard({ playlist }: { playlist: Playlist }) {
   const { entries } = playlist;
   const [selected, setSelected] = useState(() => new Set(entries.map((e) => e.id)));
-  const [kind, setKind] = useState<"video" | "audio">("video");
-  const [height, setHeight] = useState<number | null>(null);
+  const [choice, setChoice] = useState<FormatChoice>(defaultChoice);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const add = useQueue((s) => s.add);
@@ -36,7 +30,7 @@ export function PlaylistCard({ playlist }: { playlist: Playlist }) {
     try {
       // Appended one by one so the videos download, and are listed, in playlist order.
       for (const entry of entries.filter((e) => selected.has(e.id))) {
-        await add(entry, entry.url, { kind, height: kind === "video" ? height : null }, true);
+        await add(entry, entry.url, toOptions(choice), true);
       }
     } catch (e) {
       setError(String(e));
@@ -88,23 +82,7 @@ export function PlaylistCard({ playlist }: { playlist: Playlist }) {
       </ul>
 
       <div className={styles.actions}>
-        <Segmented label="Format" value={kind} options={KINDS} onChange={setKind} />
-        {kind === "video" ? (
-          <select
-            value={height ?? ""}
-            onChange={(e) =>
-              setHeight(e.currentTarget.value ? Number(e.currentTarget.value) : null)
-            }
-            aria-label="Video quality"
-          >
-            <option value="">Best quality</option>
-            {HEIGHTS.map((h) => (
-              <option key={h} value={h}>{`Up to ${h}p`}</option>
-            ))}
-          </select>
-        ) : (
-          <span className={styles.hint}>MP3</span>
-        )}
+        <FormatPicker value={choice} onChange={setChoice} heights={HEIGHTS} />
         <button
           className={styles.primary}
           onClick={download}

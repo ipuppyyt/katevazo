@@ -32,6 +32,17 @@ interface QueueState {
   clearFinished: () => void;
 }
 
+/** Short summary of the chosen format, shown on the job row (e.g. "1080p · MKV"). */
+function describe(o: DownloadOptions): string {
+  if (o.kind === "audio") {
+    const bitrate = o.audio_bitrate ? ` · ${o.audio_bitrate} kbps` : "";
+    return (o.audio_format ?? "mp3").toUpperCase() + bitrate;
+  }
+  const quality = o.height ? `${o.height}p` : "Best";
+  const codec = o.codec && o.codec !== "any" ? ` · ${o.codec.toUpperCase()}` : "";
+  return `${quality} · ${(o.container ?? "mp4").toUpperCase()}${codec}`;
+}
+
 const blank = (u: DownloadUpdate): Job => ({
   ...u,
   title: "…",
@@ -42,8 +53,7 @@ const blank = (u: DownloadUpdate): Job => ({
 export const useQueue = create<QueueState>((set) => ({
   jobs: [],
   add: async (meta, url, options, append = false) => {
-    const label =
-      options.kind === "audio" ? "MP3" : options.height ? `${options.height}p` : "Best";
+    const label = describe(options);
     const id = await startDownload(url, { ...options, title: meta.title });
     const details = { title: meta.title, label, thumbnail: meta.thumbnail };
     // Events can arrive before this resolves; keep any job `apply` already created.

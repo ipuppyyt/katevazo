@@ -6,7 +6,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Next up: high value, low effort
 
 - [x] **Playlists and channels:** list a playlist's videos, tick the ones to download, or download all
-- [ ] **Format and quality control:** pick resolution, codec, container and audio format and bitrate
+- [x] **Format and quality control:** pick resolution, codec, container and audio format and bitrate
 - [ ] **Subtitles:** download or embed, with a language picker, including auto-generated ones
 - [ ] **Metadata and thumbnails:** embed cover art, title, artist and chapters
 - [ ] **Filename templates:** such as `{uploader} - {title}`, with a live preview

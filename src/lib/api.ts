@@ -73,9 +73,18 @@ export interface DownloadUpdate {
   error: string | null;
 }
 
+export type Container = "mp4" | "mkv" | "webm";
+export type Codec = "any" | "h264" | "vp9" | "av1";
+export type AudioFormat = "mp3" | "m4a" | "opus" | "flac" | "wav";
+
 export interface DownloadOptions {
   kind: "video" | "audio";
   height?: number | null;
+  container?: Container;
+  codec?: Codec;
+  audio_format?: AudioFormat;
+  /** kbit/s; null means the best quality. */
+  audio_bitrate?: number | null;
   dir?: string | null;
   title?: string | null;
 }
@@ -141,6 +150,17 @@ export function formatDuration(seconds: number | null): string {
   const m = Math.floor((s % 3600) / 60);
   const pad = (n: number) => String(n).padStart(2, "0");
   return h > 0 ? `${h}:${pad(m)}:${pad(s % 60)}` : `${m}:${pad(s % 60)}`;
+}
+
+/** Video codecs offered by at least one format. */
+export function availableCodecs(formats: Format[]): Codec[] {
+  const has = (prefix: string) =>
+    formats.some((f) => f.vcodec?.toLowerCase().startsWith(prefix));
+  const found: Codec[] = [];
+  if (has("avc")) found.push("h264");
+  if (has("vp9") || has("vp09")) found.push("vp9");
+  if (has("av01")) found.push("av1");
+  return found;
 }
 
 /** Distinct video heights available, highest first (e.g. [1080, 720, 360]). */
