@@ -42,6 +42,7 @@ function App() {
             <span className={styles.titleBrand}>
               <img src="/logo.svg" alt="" />
               <span>Katevazo</span>
+              <em className={styles.beta}>Beta</em>
             </span>
           )}
         </div>
@@ -58,6 +59,7 @@ function App() {
           <div className={styles.brand}>
             <img src="/logo.svg" alt="" />
             <span>Katevazo</span>
+            <em className={styles.beta}>Beta</em>
           </div>
         )}
       </aside>

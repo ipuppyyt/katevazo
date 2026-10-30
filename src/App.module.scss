@@ -183,3 +183,17 @@
 :global(html[data-platform="mac"]) .sidebarTop {
   padding-left: 80px;
 }
+
+// Marks the app as pre-release; sits next to the wordmark.
+.beta {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-family: "Manrope Variable", var(--font-sans);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

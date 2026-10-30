@@ -9,6 +9,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - The app name is set in capitals in the Manrope typeface.
+- A Beta badge next to the app name marks the app as pre-release.
 
 ### Fixed
 
