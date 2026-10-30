@@ -138,6 +138,26 @@ impl AudioFormat {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct Subtitles {
+    /// Language code as listed by yt-dlp, e.g. `en`, `pt-BR` or `de-orig`.
+    pub lang: String,
+    /// The language only has automatic captions.
+    #[serde(default)]
+    pub auto: bool,
+    /// Put the subtitles inside the video file instead of saving an .srt next to it.
+    #[serde(default)]
+    pub embed: bool,
+}
+
+impl Subtitles {
+    /// Language codes are passed to yt-dlp as a regex, so only plain codes are allowed.
+    fn is_valid(&self) -> bool {
+        (1..=16).contains(&self.lang.len())
+            && self.lang.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct Options {
     pub kind: Kind,
     /// Maximum video height (e.g. 1080); `None` means best available.
@@ -151,6 +171,8 @@ pub struct Options {
     /// Audio bitrate in kbit/s; `None` means the best quality.
     #[serde(default)]
     pub audio_bitrate: Option<u32>,
+    #[serde(default)]
+    pub subtitles: Option<Subtitles>,
     /// Overrides the default Downloads folder.
     pub dir: Option<String>,
     /// Display title recorded in history.
@@ -361,6 +383,17 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
                 let quality = options.audio_bitrate.map_or("0".to_string(), |k| format!("{k}K"));
                 a.extend(["--audio-quality".into(), quality]);
             }
+        }
+    }
+    if let Some(s) = options.subtitles.as_ref().filter(|s| s.is_valid()) {
+        a.extend(["--write-subs".into(), "--sub-langs".into(), s.lang.clone()]);
+        if s.auto {
+            a.push("--write-auto-subs".into());
+        }
+        // Players read .srt most widely; embedding only makes sense in a video file.
+        a.extend(["--convert-subs".into(), "srt".into()]);
+        if s.embed && options.kind == Kind::Video {
+            a.push("--embed-subs".into());
         }
     }
     // `--` stops option parsing so the URL can never be read as a flag.
@@ -595,6 +628,16 @@ fn finish_error(app: &AppHandle, state: &DownloadState, id: &str, message: Strin
     emit(app, u);
 }
 
+fn is_subtitle_file(filename: &str) -> bool {
+    let name = filename.strip_suffix(".part").unwrap_or(filename);
+    name.rsplit('.').next().is_some_and(|ext| {
+        matches!(
+            ext,
+            "vtt" | "srt" | "ttml" | "ass" | "lrc" | "json3" | "srv1" | "srv2" | "srv3" | "sbv"
+        )
+    })
+}
+
 fn handle_line(
     app: &AppHandle,
     state: &DownloadState,
@@ -603,6 +646,11 @@ fn handle_line(
     file: &mut Option<String>,
 ) {
     if let Some(p) = parse_progress(line) {
+        // A subtitle file is not one of the video or audio streams, and counting it
+        // would advance the tracker and make the bar jump.
+        if is_subtitle_file(&p.filename) {
+            return;
+        }
         let overall = {
             let mut jobs = state.jobs.lock().unwrap();
             let Some(entry) = jobs.get_mut(id) else {
@@ -699,6 +747,7 @@ mod tests {
             codec: Codec::default(),
             audio_format: AudioFormat::default(),
             audio_bitrate: None,
+            subtitles: None,
             dir: None,
             title: None,
         }
@@ -828,6 +877,33 @@ mod tests {
         o.audio_bitrate = Some(320);
         let args = build_args(&o, "/tmp", None, "u");
         assert!(flag(&args, "--audio-quality").is_none());
+    }
+
+    #[test]
+    fn subtitle_args() {
+        let mut o = opts(Kind::Video, None);
+        o.subtitles = Some(Subtitles { lang: "en".into(), auto: true, embed: true });
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--sub-langs").unwrap(), "en");
+        assert!(args.contains(&"--write-auto-subs".to_string()));
+        assert!(args.contains(&"--embed-subs".to_string()));
+        assert_eq!(flag(&args, "--convert-subs").unwrap(), "srt");
+    }
+
+    #[test]
+    fn subtitles_are_not_embedded_in_audio_and_bad_langs_are_dropped() {
+        let mut o = opts(Kind::Audio, None);
+        o.subtitles = Some(Subtitles { lang: "en".into(), auto: false, embed: true });
+        assert!(!build_args(&o, "/tmp", None, "u").contains(&"--embed-subs".to_string()));
+        o.subtitles = Some(Subtitles { lang: ".*".into(), auto: false, embed: false });
+        assert!(flag(&build_args(&o, "/tmp", None, "u"), "--sub-langs").is_none());
+    }
+
+    #[test]
+    fn subtitle_progress_is_recognised() {
+        assert!(is_subtitle_file("C:/x/Title [id].en.vtt"));
+        assert!(is_subtitle_file("Title.en.vtt.part"));
+        assert!(!is_subtitle_file("Title [id].f137.mp4"));
     }
 
     #[test]

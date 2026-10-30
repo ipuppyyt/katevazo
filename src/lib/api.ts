@@ -17,6 +17,8 @@ export interface Metadata {
   uploader: string | null;
   formats: Format[];
   playlist_count: number | null;
+  subtitle_langs: string[];
+  auto_caption_langs: string[];
 }
 
 export const fetchMetadata = (url: string) =>
@@ -85,6 +87,7 @@ export interface DownloadOptions {
   audio_format?: AudioFormat;
   /** kbit/s; null means the best quality. */
   audio_bitrate?: number | null;
+  subtitles?: { lang: string; auto: boolean; embed: boolean } | null;
   dir?: string | null;
   title?: string | null;
 }

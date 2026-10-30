@@ -9,6 +9,9 @@ export interface FormatChoice {
   codec: Codec;
   audioFormat: AudioFormat;
   audioBitrate: number | null;
+  /** "" for none, a language code for uploaded subtitles, or "auto:<code>" for automatic captions. */
+  subtitle: string;
+  embedSubtitles: boolean;
 }
 
 export const defaultChoice: FormatChoice = {
@@ -18,16 +21,37 @@ export const defaultChoice: FormatChoice = {
   codec: "any",
   audioFormat: "mp3",
   audioBitrate: null,
+  subtitle: "",
+  embedSubtitles: true,
 };
 
 export function toOptions(c: FormatChoice): DownloadOptions {
+  const auto = c.subtitle.startsWith("auto:");
+  const subtitles = c.subtitle
+    ? {
+        lang: auto ? c.subtitle.slice("auto:".length) : c.subtitle,
+        auto,
+        embed: c.kind === "video" && c.embedSubtitles,
+      }
+    : null;
   return c.kind === "video"
-    ? { kind: "video", height: c.height, container: c.container, codec: c.codec }
+    ? { kind: "video", height: c.height, container: c.container, codec: c.codec, subtitles }
     : {
         kind: "audio",
         audio_format: c.audioFormat,
         audio_bitrate: isLossy(c.audioFormat) ? c.audioBitrate : null,
+        subtitles,
       };
+}
+
+/** "pt-BR" becomes "Portuguese (Brazil)"; unknown codes are shown as they are. */
+function languageName(code: string): string {
+  const base = code.replace(/-orig$/, "");
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" }).of(base) ?? base;
+  } catch {
+    return base;
+  }
 }
 
 const KINDS = [
@@ -67,10 +91,12 @@ interface Props {
   heights: number[];
   /** Codecs known to exist for this video; omit to offer all. */
   codecs?: Codec[];
+  /** Subtitle languages for this video; omit when they are not known (playlists). */
+  subtitles?: { manual: string[]; auto: string[] };
 }
 
 /** Format controls shared by the single-video and playlist cards. */
-export function FormatPicker({ value, onChange, heights, codecs }: Props) {
+export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Props) {
   const set = (patch: Partial<FormatChoice>) => onChange({ ...value, ...patch });
 
   // H.264 cannot be stored in WebM, so it is not offered there.
@@ -152,6 +178,35 @@ export function FormatPicker({ value, onChange, heights, codecs }: Props) {
             </select>
           ) : (
             <span className={styles.hint}>Lossless</span>
+          )}
+        </>
+      )}
+      {subtitles && (subtitles.manual.length > 0 || subtitles.auto.length > 0) && (
+        <>
+          <select
+            value={value.subtitle}
+            onChange={(e) => set({ subtitle: e.currentTarget.value })}
+            aria-label="Subtitles"
+          >
+            <option value="">No subtitles</option>
+            {subtitles.manual.map((l) => (
+              <option key={l} value={l}>{languageName(l)}</option>
+            ))}
+            {subtitles.auto.map((l) => (
+              <option key={`auto:${l}`} value={`auto:${l}`}>
+                {`${languageName(l)} (auto-generated)`}
+              </option>
+            ))}
+          </select>
+          {value.subtitle && value.kind === "video" && (
+            <label className={styles.check}>
+              <input
+                type="checkbox"
+                checked={value.embedSubtitles}
+                onChange={(e) => set({ embedSubtitles: e.currentTarget.checked })}
+              />
+              Embed in video
+            </label>
           )}
         </>
       )}

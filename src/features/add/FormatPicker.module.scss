@@ -14,3 +14,15 @@
 .hint {
   color: var(--text-muted);
 }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+
+  input {
+    accent-color: var(--accent);
+    margin: 0;
+  }
+}

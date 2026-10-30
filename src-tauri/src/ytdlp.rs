@@ -26,10 +26,46 @@ pub struct Metadata {
     /// Number of entries when the URL is a playlist.
     #[serde(default)]
     pub playlist_count: Option<u32>,
+    /// Languages with uploaded subtitles; filled in by `parse_metadata`.
+    #[serde(default)]
+    pub subtitle_langs: Vec<String>,
+    /// Languages with automatic captions that are worth offering; see `auto_caption_langs`.
+    #[serde(default)]
+    pub auto_caption_langs: Vec<String>,
 }
 
 pub fn parse_metadata(json: &str) -> Result<Metadata, String> {
-    serde_json::from_str(json).map_err(|e| format!("invalid yt-dlp metadata: {e}"))
+    let err = |e: serde_json::Error| format!("invalid yt-dlp metadata: {e}");
+    let raw: serde_json::Value = serde_json::from_str(json).map_err(err)?;
+    let mut meta: Metadata = serde_json::from_value(raw.clone()).map_err(err)?;
+    let langs = |key: &str| -> Vec<String> {
+        let mut v: Vec<String> = raw[key]
+            .as_object()
+            .map(|m| m.keys().cloned().collect())
+            .unwrap_or_default();
+        v.sort();
+        v
+    };
+    meta.subtitle_langs = langs("subtitles")
+        .into_iter()
+        // "live_chat" is the stream's chat replay, not subtitles.
+        .filter(|l| l != "live_chat")
+        .collect();
+    meta.auto_caption_langs = auto_caption_langs(&langs("automatic_captions"));
+    Ok(meta)
+}
+
+/// YouTube offers auto-translation into ~150 languages. Only the spoken language
+/// (`xx-orig`, or English when that is all there is) is a real transcript worth listing.
+fn auto_caption_langs(all: &[String]) -> Vec<String> {
+    let orig: Vec<String> = all.iter().filter(|l| l.ends_with("-orig")).cloned().collect();
+    if !orig.is_empty() {
+        orig
+    } else if all.iter().any(|l| l == "en") {
+        vec!["en".into()]
+    } else {
+        Vec::new()
+    }
 }
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -270,6 +306,15 @@ mod tests {
         assert_eq!(m.title, "Hi");
         assert_eq!(m.formats[0].height, Some(360));
         assert!(m.thumbnail.is_none());
+    }
+
+    #[test]
+    fn lists_subtitle_languages() {
+        let json = r#"{"id":"a","title":"T","subtitles":{"fr":[],"en":[],"live_chat":[]},
+            "automatic_captions":{"en":[],"de":[],"de-orig":[]}}"#;
+        let m = parse_metadata(json).unwrap();
+        assert_eq!(m.subtitle_langs, ["en", "fr"]);
+        assert_eq!(m.auto_caption_langs, ["de-orig"]);
     }
 
     #[test]

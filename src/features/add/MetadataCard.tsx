@@ -38,6 +38,7 @@ export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
             onChange={setChoice}
             heights={heights}
             codecs={availableCodecs(meta.formats)}
+            subtitles={{ manual: meta.subtitle_langs, auto: meta.auto_caption_langs }}
           />
           <button className={styles.primary} onClick={download}>
             Download
