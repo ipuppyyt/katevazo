@@ -14,6 +14,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Embed title, uploader, chapters and cover art in downloaded files (on by default, in Settings).
 - Filename templates such as {uploader} - {title}, with sub-folders and a live preview.
 - Offer to fetch a YouTube link when you copy one (can be turned off in Settings).
+- Desktop notification when a download finishes or fails while the app is in the background.
 
 ## [0.1.1] - 2026-10-30
 

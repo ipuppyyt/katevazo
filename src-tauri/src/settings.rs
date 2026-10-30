@@ -19,6 +19,8 @@ pub struct Settings {
     pub filename_template: String,
     /// Offer to download a video link when one is copied.
     pub watch_clipboard: bool,
+    /// Show a desktop notification when a download finishes or fails in the background.
+    pub notifications: bool,
 }
 
 impl Default for Settings {
@@ -30,6 +32,7 @@ impl Default for Settings {
             embed_thumbnail: true,
             filename_template: crate::template::DEFAULT.into(),
             watch_clipboard: true,
+            notifications: true,
         }
     }
 }

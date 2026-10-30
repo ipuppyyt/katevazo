@@ -100,6 +100,17 @@ export function SettingsView() {
           </div>
           <div className={styles.row}>
             <div className={styles.label}>
+              <span>Notifications</span>
+              <small>Tell me when a download finishes or fails while the app is in the background</small>
+            </div>
+            <Switch
+              label="Notifications"
+              checked={settings.notifications}
+              onChange={(notifications) => save({ ...settings, notifications })}
+            />
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
               <span>Watch the clipboard</span>
               <small>Offer to download a video link when you copy one</small>
             </div>

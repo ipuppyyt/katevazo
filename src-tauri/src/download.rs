@@ -12,7 +12,7 @@ use std::{
     },
 };
 
-use crate::{history, settings, template};
+use crate::{history, notify, settings, template};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
@@ -628,6 +628,7 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
             let mut u = Update::new(id, Status::Done).with_percent(100.0);
             u.file = file;
             emit(app, u);
+            notify::download_ended(app, title, None);
         }
         Desired::Run => {
             let msg = if last_err.is_empty() {
@@ -642,12 +643,16 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
 
 /// Marks the job failed but keeps it, so the UI can offer Retry (resume).
 fn finish_error(app: &AppHandle, state: &DownloadState, id: &str, message: String) {
-    if let Some(e) = state.jobs.lock().unwrap().get_mut(id) {
+    let title = state.jobs.lock().unwrap().get_mut(id).map(|e| {
         e.alive = false;
-    }
+        e.spec.options.title.clone().unwrap_or_else(|| e.spec.url.clone())
+    });
     let mut u = Update::new(id, Status::Error);
-    u.error = Some(message);
+    u.error = Some(message.clone());
     emit(app, u);
+    if let Some(title) = title {
+        notify::download_ended(app, &title, Some(&message));
+    }
 }
 
 fn is_subtitle_file(filename: &str) -> bool {

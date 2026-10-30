@@ -114,6 +114,7 @@ export interface Settings {
   embed_thumbnail: boolean;
   filename_template: string;
   watch_clipboard: boolean;
+  notifications: boolean;
 }
 
 /** Fields usable in a filename template, with an example value for the live preview. */
