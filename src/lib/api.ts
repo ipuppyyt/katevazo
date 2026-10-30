@@ -22,6 +22,38 @@ export interface Metadata {
 export const fetchMetadata = (url: string) =>
   invoke<Metadata>("fetch_metadata", { url });
 
+export interface PlaylistEntry {
+  id: string;
+  title: string;
+  url: string;
+  duration: number | null;
+  thumbnail: string | null;
+}
+
+export interface Playlist {
+  title: string;
+  uploader: string | null;
+  entries: PlaylistEntry[];
+}
+
+export const fetchPlaylist = (url: string) =>
+  invoke<Playlist>("fetch_playlist", { url });
+
+/** True for YouTube playlist and channel links, which list many videos. */
+export function isPlaylistUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    if (!/(^|\.)youtube\.com$/.test(u.hostname)) return false;
+    const path = u.pathname.replace(/\/+$/, "");
+    if (path === "/playlist") return true;
+    // A watch link that is merely inside a playlist is treated as the single video.
+    if (u.searchParams.has("list") && !u.searchParams.has("v") && path === "/watch") return true;
+    return /^\/(@[^/]+|(channel|c|user)\/[^/]+)(\/videos)?$/.test(path);
+  } catch {
+    return false;
+  }
+}
+
 export type Status =
   | "queued"
   | "downloading"

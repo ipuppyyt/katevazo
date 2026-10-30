@@ -32,6 +32,90 @@ pub fn parse_metadata(json: &str) -> Result<Metadata, String> {
     serde_json::from_str(json).map_err(|e| format!("invalid yt-dlp metadata: {e}"))
 }
 
+#[derive(Debug, Serialize, PartialEq)]
+pub struct PlaylistEntry {
+    pub id: String,
+    pub title: String,
+    pub url: String,
+    pub duration: Option<f64>,
+    pub thumbnail: Option<String>,
+}
+
+#[derive(Debug, Serialize, PartialEq)]
+pub struct Playlist {
+    pub title: String,
+    pub uploader: Option<String>,
+    pub entries: Vec<PlaylistEntry>,
+}
+
+/// Most videos listed from one playlist or channel; keeps the list responsive.
+const PLAYLIST_LIMIT: &str = "500";
+
+/// Parses `yt-dlp --flat-playlist --dump-single-json` output.
+pub fn parse_playlist(json: &str) -> Result<Playlist, String> {
+    let v: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("invalid yt-dlp playlist: {e}"))?;
+    let entries = v["entries"].as_array().ok_or("this link is not a playlist")?;
+    let text = |e: &serde_json::Value, key: &str| e[key].as_str().map(str::to_owned);
+
+    let entries = entries
+        .iter()
+        .filter_map(|e| {
+            let id = text(e, "id")?;
+            let title = text(e, "title").unwrap_or_else(|| "Untitled".into());
+            // Unavailable videos are listed as placeholders and cannot be downloaded.
+            if title.starts_with("[Private") || title.starts_with("[Deleted") {
+                return None;
+            }
+            let url = text(e, "url")
+                .filter(|u| u.starts_with("http"))
+                .unwrap_or_else(|| format!("https://www.youtube.com/watch?v={id}"));
+            let thumbnail = text(e, "thumbnail").or_else(|| {
+                e["thumbnails"]
+                    .as_array()?
+                    .last()?
+                    .get("url")?
+                    .as_str()
+                    .map(str::to_owned)
+            });
+            Some(PlaylistEntry {
+                id,
+                title,
+                url,
+                duration: e["duration"].as_f64(),
+                thumbnail,
+            })
+        })
+        .collect();
+
+    Ok(Playlist {
+        title: text(&v, "title").unwrap_or_else(|| "Playlist".into()),
+        uploader: text(&v, "uploader").or_else(|| text(&v, "channel")),
+        entries,
+    })
+}
+
+/// A bare channel link lists its tabs rather than videos, so point it at the Videos tab.
+fn playlist_url(url: &str) -> String {
+    let base = url.split(['?', '#']).next().unwrap_or(url).trim_end_matches('/');
+    let Some(path) = base
+        .split_once("youtube.com/")
+        .map(|(_, p)| p.split('/').collect::<Vec<_>>())
+    else {
+        return url.to_owned();
+    };
+    let is_channel = match path.as_slice() {
+        [handle] => handle.starts_with('@'),
+        ["channel" | "c" | "user", _] => true,
+        _ => false,
+    };
+    if is_channel {
+        format!("{base}/videos")
+    } else {
+        url.to_owned()
+    }
+}
+
 const EXE: &str = if cfg!(windows) {
     "yt-dlp.exe"
 } else {
@@ -117,9 +201,66 @@ pub async fn fetch_metadata(app: AppHandle, url: String) -> Result<Metadata, Str
     parse_metadata(&json)
 }
 
+/// Lists the videos in a playlist or channel without fetching each one's formats.
+#[tauri::command]
+pub async fn fetch_playlist(app: AppHandle, url: String) -> Result<Playlist, String> {
+    let url = playlist_url(&url);
+    let json = run(
+        &app,
+        &[
+            "--flat-playlist",
+            "--dump-single-json",
+            "--no-warnings",
+            "--playlist-end",
+            PLAYLIST_LIMIT,
+            "--",
+            &url,
+        ],
+    )
+    .await?;
+    parse_playlist(&json)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_playlist_and_skips_unavailable_videos() {
+        let json = r#"{"title":"Mix","uploader":"Me","entries":[
+            {"id":"a","title":"One","url":"https://www.youtube.com/watch?v=a","duration":60,
+             "thumbnails":[{"url":"small"},{"url":"big"}]},
+            {"id":"b","title":"[Private video]"},
+            {"id":"c","title":"Three","url":"c"}]}"#;
+        let p = parse_playlist(json).unwrap();
+        assert_eq!(p.title, "Mix");
+        assert_eq!(p.entries.len(), 2);
+        assert_eq!(p.entries[0].thumbnail.as_deref(), Some("big"));
+        assert_eq!(p.entries[0].duration, Some(60.0));
+        // A non-URL value falls back to the canonical watch link.
+        assert_eq!(p.entries[1].url, "https://www.youtube.com/watch?v=c");
+    }
+
+    #[test]
+    fn single_video_is_not_a_playlist() {
+        assert!(parse_playlist(r#"{"id":"x","title":"T"}"#).is_err());
+    }
+
+    #[test]
+    fn channel_links_point_at_the_videos_tab() {
+        assert_eq!(
+            playlist_url("https://www.youtube.com/@katevazo/"),
+            "https://www.youtube.com/@katevazo/videos"
+        );
+        assert_eq!(
+            playlist_url("https://youtube.com/channel/UC123?si=x"),
+            "https://youtube.com/channel/UC123/videos"
+        );
+        let playlist = "https://www.youtube.com/playlist?list=PL1";
+        assert_eq!(playlist_url(playlist), playlist);
+        let tab = "https://www.youtube.com/@katevazo/shorts";
+        assert_eq!(playlist_url(tab), tab);
+    }
 
     #[test]
     fn parses_minimal_metadata() {

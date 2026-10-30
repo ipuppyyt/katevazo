@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Icon } from "../../components/Icon";
 import { ToolbarSlot } from "../../components/ToolbarSlot";
-import { fetchMetadata, type Metadata } from "../../lib/api";
+import {
+  fetchMetadata,
+  fetchPlaylist,
+  isPlaylistUrl,
+  type Metadata,
+  type Playlist,
+} from "../../lib/api";
 import { QueueList } from "../queue/QueueList";
 import { useQueue } from "../queue/store";
 import styles from "./DownloadsView.module.scss";
 import { MetadataCard } from "./MetadataCard";
+import { PlaylistCard } from "./PlaylistCard";
 
 export function DownloadsView({ active }: { active: boolean }) {
   const hasJobs = useQueue((s) => s.jobs.length > 0);
@@ -13,6 +20,7 @@ export function DownloadsView({ active }: { active: boolean }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<Metadata | null>(null);
+  const [playlist, setPlaylist] = useState<Playlist | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,8 +29,10 @@ export function DownloadsView({ active }: { active: boolean }) {
     setLoading(true);
     setError(null);
     setMeta(null);
+    setPlaylist(null);
     try {
-      setMeta(await fetchMetadata(trimmed));
+      if (isPlaylistUrl(trimmed)) setPlaylist(await fetchPlaylist(trimmed));
+      else setMeta(await fetchMetadata(trimmed));
     } catch (err) {
       setError(String(err));
     } finally {
@@ -53,8 +63,9 @@ export function DownloadsView({ active }: { active: boolean }) {
       )}
       {error && <div className={styles.error}>{error}</div>}
       {meta && <MetadataCard meta={meta} url={url.trim()} />}
+      {playlist && <PlaylistCard key={playlist.title} playlist={playlist} />}
       <QueueList />
-      {!meta && !error && !hasJobs && (
+      {!meta && !playlist && !error && !hasJobs && (
         <div className={styles.empty}>
           <Icon name="tray" size={44} />
           <h2>No Downloads</h2>

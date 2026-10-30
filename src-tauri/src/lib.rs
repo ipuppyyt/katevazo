@@ -13,6 +13,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             ytdlp::ytdlp_version,
             ytdlp::fetch_metadata,
+            ytdlp::fetch_playlist,
             ytdlp::update_ytdlp,
             download::start_download,
             download::pause_download,

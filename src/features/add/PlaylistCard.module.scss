@@ -1,0 +1,114 @@
+@use "../../styles/mixins" as *;
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  user-select: text;
+}
+
+.sub {
+  color: var(--text-muted);
+}
+
+.all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 0.5px var(--separator);
+
+  li + li {
+    border-top: 0.5px solid var(--separator);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 6px var(--space-3);
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+
+.thumb {
+  width: 64px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: var(--fill-subtle);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.duration {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  select {
+    @include select-field;
+  }
+}
+
+.hint {
+  color: var(--text-muted);
+}
+
+.primary {
+  @include button-filled;
+  margin-left: auto;
+}
+
+.error {
+  color: var(--danger);
+}

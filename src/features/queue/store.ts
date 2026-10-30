@@ -4,8 +4,13 @@ import {
   startDownload,
   type DownloadOptions,
   type DownloadUpdate,
-  type Metadata,
 } from "../../lib/api";
+
+/** The bits of a video the queue needs; `Metadata` and playlist entries both fit. */
+export interface QueueItem {
+  title: string;
+  thumbnail: string | null;
+}
 
 export interface Job extends DownloadUpdate {
   title: string;
@@ -15,7 +20,13 @@ export interface Job extends DownloadUpdate {
 
 interface QueueState {
   jobs: Job[];
-  add: (meta: Metadata, url: string, options: DownloadOptions) => Promise<void>;
+  /** New downloads go on top of the list, or at the bottom when `append` is set. */
+  add: (
+    meta: QueueItem,
+    url: string,
+    options: DownloadOptions,
+    append?: boolean,
+  ) => Promise<void>;
   apply: (update: DownloadUpdate) => void;
   remove: (id: string) => void;
   clearFinished: () => void;
@@ -30,7 +41,7 @@ const blank = (u: DownloadUpdate): Job => ({
 
 export const useQueue = create<QueueState>((set) => ({
   jobs: [],
-  add: async (meta, url, options) => {
+  add: async (meta, url, options, append = false) => {
     const label =
       options.kind === "audio" ? "MP3" : options.height ? `${options.height}p` : "Best";
     const id = await startDownload(url, { ...options, title: meta.title });
@@ -39,15 +50,13 @@ export const useQueue = create<QueueState>((set) => ({
     set((s) =>
       s.jobs.some((j) => j.id === id)
         ? { jobs: s.jobs.map((j) => (j.id === id ? { ...j, ...details } : j)) }
-        : {
-            jobs: [
-              {
-                id, status: "queued", percent: null, speed: null, eta: null,
-                file: null, error: null, ...details,
-              },
-              ...s.jobs,
-            ],
-          },
+        : (() => {
+            const job: Job = {
+              id, status: "queued", percent: null, speed: null, eta: null,
+              file: null, error: null, ...details,
+            };
+            return { jobs: append ? [...s.jobs, job] : [job, ...s.jobs] };
+          })(),
     );
   },
   apply: (u) =>
