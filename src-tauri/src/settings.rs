@@ -15,6 +15,8 @@ pub struct Settings {
     pub embed_metadata: bool,
     /// Use the video's thumbnail as cover art where the format supports it.
     pub embed_thumbnail: bool,
+    /// How downloaded files are named, e.g. `{title} [{id}]`; see `template`.
+    pub filename_template: String,
 }
 
 impl Default for Settings {
@@ -24,6 +26,7 @@ impl Default for Settings {
             theme: "system".into(),
             embed_metadata: true,
             embed_thumbnail: true,
+            filename_template: crate::template::DEFAULT.into(),
         }
     }
 }
@@ -53,6 +56,7 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     if !matches!(settings.theme.as_str(), "system" | "light" | "dark") {
         return Err(format!("unknown theme: {}", settings.theme));
     }
+    crate::template::render(&settings.filename_template)?;
     let json = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(path(&app)?, json).map_err(|e| e.to_string())
 }
@@ -67,5 +71,6 @@ mod tests {
         assert_eq!(s.theme, "dark");
         assert!(s.download_dir.is_none());
         assert!(s.embed_metadata && s.embed_thumbnail);
+        assert_eq!(s.filename_template, "{title} [{id}]");
     }
 }

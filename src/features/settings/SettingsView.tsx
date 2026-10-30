@@ -5,7 +5,9 @@ import { Switch } from "../../components/Switch";
 import {
   applyTheme,
   getSettings,
+  previewTemplate,
   setSettings,
+  TEMPLATE_FIELDS,
   updateYtdlp,
   ytdlpVersion,
   type Settings,
@@ -24,9 +26,15 @@ export function SettingsView() {
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [template, setTemplate] = useState("");
+  const [templateError, setTemplateError] = useState<string | null>(null);
 
   useEffect(() => {
-    getSettings().then(setLocal).catch((e) => setError(String(e)));
+    getSettings()
+      .then((s) => {
+        setLocal(s);
+        setTemplate(s.filename_template);
+      }).catch((e) => setError(String(e)));
     ytdlpVersion().then(setVersion).catch(() => setVersion("Unavailable"));
   }, []);
 
@@ -55,6 +63,17 @@ export function SettingsView() {
     }
   }
 
+  async function commitTemplate(value: string) {
+    if (value === settings?.filename_template) return setTemplateError(null);
+    try {
+      await setSettings({ ...settings!, filename_template: value });
+      setLocal({ ...settings!, filename_template: value });
+      setTemplateError(null);
+    } catch (e) {
+      setTemplateError(String(e));
+    }
+  }
+
   async function chooseFolder() {
     const dir = await open({ directory: true, defaultPath: settings?.download_dir ?? undefined });
     if (typeof dir === "string") save({ ...settings!, download_dir: dir });
@@ -78,6 +97,43 @@ export function SettingsView() {
             <button className={styles.tinted} onClick={chooseFolder}>
               Choose…
             </button>
+          </div>
+          <div className={styles.stack}>
+            <div className={styles.label}>
+              <span>File name</span>
+              <small>
+                Use / to sort into folders, for example {"{uploader}/{title}"}
+              </small>
+            </div>
+            <input
+              className={styles.input}
+              value={template}
+              onChange={(e) => setTemplate(e.currentTarget.value)}
+              onBlur={() => commitTemplate(template)}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+              spellCheck={false}
+              aria-label="File name template"
+            />
+            <div className={styles.chips}>
+              {TEMPLATE_FIELDS.map((f) => (
+                <button
+                  key={f.name}
+                  className={styles.chip}
+                  onClick={() => {
+                    const next = `${template}{${f.name}}`;
+                    setTemplate(next);
+                    commitTemplate(next);
+                  }}
+                >
+                  {`{${f.name}}`}
+                </button>
+              ))}
+            </div>
+            {templateError ? (
+              <p className={styles.error}>{templateError}</p>
+            ) : (
+              <code className={styles.preview}>{previewTemplate(template)}.mp4</code>
+            )}
           </div>
           <div className={styles.row}>
             <span className={styles.label}>Appearance</span>

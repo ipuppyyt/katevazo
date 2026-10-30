@@ -12,6 +12,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Choose the container (MP4, MKV, WebM) and preferred codec (H.264, VP9, AV1) for video, and the format (MP3, M4A, Opus, FLAC, WAV) and bitrate for audio.
 - Download subtitles, including auto-generated captions, saved as .srt or embedded in the video.
 - Embed title, uploader, chapters and cover art in downloaded files (on by default, in Settings).
+- Filename templates such as {uploader} - {title}, with sub-folders and a live preview.
 
 ## [0.1.1] - 2026-10-30
 

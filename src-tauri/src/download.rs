@@ -12,7 +12,7 @@ use std::{
     },
 };
 
-use crate::{history, settings};
+use crate::{history, settings, template};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
@@ -178,6 +178,9 @@ pub struct Options {
     pub embed_metadata: bool,
     #[serde(skip)]
     pub embed_thumbnail: bool,
+    /// The user's filename template; empty or invalid means the default.
+    #[serde(skip)]
+    pub filename_template: String,
     /// Overrides the default Downloads folder.
     pub dir: Option<String>,
     /// Display title recorded in history.
@@ -363,7 +366,10 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
     ]
     .map(String::from)
     .to_vec();
-    a.push(format!("{out_dir}/%(title).150B [%(id)s].%(ext)s"));
+    let name = template::render(&options.filename_template)
+        .or_else(|_| template::render(template::DEFAULT))
+        .expect("the default template is valid");
+    a.push(format!("{out_dir}/{name}.%(ext)s"));
     if let Some(f) = ffmpeg {
         a.push("--ffmpeg-location".into());
         a.push(f.into());
@@ -475,6 +481,7 @@ pub async fn start_download(
     let prefs = settings::load(&app);
     options.embed_metadata = prefs.embed_metadata;
     options.embed_thumbnail = prefs.embed_thumbnail;
+    options.filename_template = prefs.filename_template.clone();
     let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
@@ -765,6 +772,7 @@ mod tests {
             subtitles: None,
             embed_metadata: false,
             embed_thumbnail: false,
+            filename_template: String::new(),
             dir: None,
             title: None,
         }
@@ -908,6 +916,17 @@ mod tests {
         assert!(args.contains(&"--embed-metadata".to_string()));
         assert!(args.contains(&"--embed-thumbnail".to_string()));
         assert_eq!(flag(&args, "--convert-thumbnails").unwrap(), "jpg");
+    }
+
+    #[test]
+    fn output_name_uses_the_template_or_falls_back() {
+        let mut o = opts(Kind::Video, None);
+        let out = |o: &Options| flag(&build_args(o, "/tmp", None, "u"), "-o").unwrap();
+        assert_eq!(out(&o), "/tmp/%(title).150B [%(id)s].%(ext)s");
+        o.filename_template = "{uploader} - {title}".into();
+        assert_eq!(out(&o), "/tmp/%(uploader|Unknown).100B - %(title).150B.%(ext)s");
+        o.filename_template = "../evil".into();
+        assert_eq!(out(&o), "/tmp/%(title).150B [%(id)s].%(ext)s");
     }
 
     #[test]

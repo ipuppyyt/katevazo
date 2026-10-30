@@ -99,6 +99,25 @@ export interface Settings {
   theme: Theme;
   embed_metadata: boolean;
   embed_thumbnail: boolean;
+  filename_template: string;
+}
+
+/** Fields usable in a filename template, with an example value for the live preview. */
+export const TEMPLATE_FIELDS = [
+  { name: "title", sample: "Me at the zoo" },
+  { name: "uploader", sample: "jawed" },
+  { name: "channel", sample: "jawed" },
+  { name: "id", sample: "jNQXAC9IVRw" },
+  { name: "date", sample: "2005-04-24" },
+  { name: "year", sample: "2005" },
+] as const;
+
+/** What a file would be called, using a sample video. */
+export function previewTemplate(template: string): string {
+  return template.replace(/\{(\w+)\}/g, (whole, name: string) => {
+    const field = TEMPLATE_FIELDS.find((f) => f.name === name);
+    return field ? field.sample : whole;
+  });
 }
 
 export interface HistoryEntry {

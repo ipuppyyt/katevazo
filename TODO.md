@@ -9,7 +9,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [x] **Format and quality control:** pick resolution, codec, container and audio format and bitrate
 - [x] **Subtitles:** download or embed, with a language picker, including auto-generated ones
 - [x] **Metadata and thumbnails:** embed cover art, title, artist and chapters
-- [ ] **Filename templates:** such as `{uploader} - {title}`, with a live preview
+- [x] **Filename templates:** such as `{uploader} - {title}`, with a live preview
 - [ ] **Clipboard detection:** offer to download when a supported link is copied
 - [ ] **Notifications and sounds:** tell the user when a download finishes or fails
 - [ ] **Open file or folder** actions on finished downloads

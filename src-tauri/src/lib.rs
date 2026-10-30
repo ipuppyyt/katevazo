@@ -1,6 +1,7 @@
 mod download;
 mod history;
 mod settings;
+mod template;
 mod ytdlp;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
