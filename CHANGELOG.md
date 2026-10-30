@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Dropdown lists (quality, container, codec and so on) showed blank choices in dark mode.
+
 ## [0.2.0] - 2026-10-30
 
 ### Added
