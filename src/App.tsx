@@ -10,8 +10,8 @@ import { SettingsView } from "./features/settings/SettingsView";
 import { applyTheme, getSettings } from "./lib/api";
 
 const NAV: { id: Tab; icon: IconName }[] = [
-  { id: "Downloads", icon: "tray" },
-  { id: "History", icon: "clock" },
+  { id: "Downloads", icon: "save" },
+  { id: "History", icon: "history" },
   { id: "Settings", icon: "gear" },
 ];
 type Tab = "Downloads" | "History" | "Settings";
@@ -41,7 +41,7 @@ function App() {
           {!isMac && (
             <span className={styles.titleBrand}>
               <img src="/logo.svg" alt="" />
-              Katevazo
+              <span>Katevazo</span>
             </span>
           )}
         </div>
@@ -57,7 +57,7 @@ function App() {
         {isMac && (
           <div className={styles.brand}>
             <img src="/logo.svg" alt="" />
-            Katevazo
+            <span>Katevazo</span>
           </div>
         )}
       </aside>

@@ -6,8 +6,13 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The app name is set in capitals in the Manrope typeface.
+
 ### Fixed
 
+- The sidebar icons were hand-drawn and uneven; the app now uses the Lucide icon set throughout.
 - Dropdown lists (quality, container, codec and so on) showed blank choices in dark mode.
 
 ## [0.2.0] - 2026-10-30
