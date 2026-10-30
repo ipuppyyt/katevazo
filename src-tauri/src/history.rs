@@ -35,7 +35,13 @@ fn init(conn: &Connection) -> Result<(), String> {
     .map_err(|e| e.to_string())
 }
 
-fn insert(conn: &Connection, title: &str, url: &str, file: Option<&str>, kind: &str) -> Result<(), String> {
+fn insert(
+    conn: &Connection,
+    title: &str,
+    url: &str,
+    file: Option<&str>,
+    kind: &str,
+) -> Result<(), String> {
     conn.execute(
         "INSERT INTO history (title, url, file, kind) VALUES (?1, ?2, ?3, ?4)",
         params![title, url, file, kind],

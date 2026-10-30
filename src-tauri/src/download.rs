@@ -257,7 +257,12 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
                 Some(h) => format!("bv*[height<={h}]+ba/b[height<={h}]"),
                 None => "bv*+ba/b".to_string(),
             };
-            a.extend(["-f".into(), sel, "--merge-output-format".into(), "mp4".into()]);
+            a.extend([
+                "-f".into(),
+                sel,
+                "--merge-output-format".into(),
+                "mp4".into(),
+            ]);
         }
         Kind::Audio => {
             a.extend(["-x".into(), "--audio-format".into(), "mp3".into()]);
@@ -271,7 +276,11 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
 
 /// Tauri copies sidecars next to the app executable (without the target triple).
 fn ffmpeg_path() -> Option<String> {
-    let name = if cfg!(windows) { "ffmpeg.exe" } else { "ffmpeg" };
+    let name = if cfg!(windows) {
+        "ffmpeg.exe"
+    } else {
+        "ffmpeg"
+    };
     let p = std::env::current_exe().ok()?.parent()?.join(name);
     p.exists().then(|| p.to_string_lossy().into_owned())
 }
@@ -330,7 +339,11 @@ pub async fn start_download(
     state.jobs.lock().unwrap().insert(
         id.clone(),
         Entry {
-            spec: Arc::new(Spec { url, options, out_dir }),
+            spec: Arc::new(Spec {
+                url,
+                options,
+                out_dir,
+            }),
             desired: Desired::Run,
             alive: true,
             child: None,
@@ -350,11 +363,15 @@ fn spawn_task(app: &AppHandle, id: String) {
 /// Waits for a free slot, then runs the job unless it was paused or cancelled meanwhile.
 async fn drive(app: &AppHandle, id: &str) {
     let state = app.state::<DownloadState>();
-    let Ok(_permit) = state.slots.acquire().await else { return };
+    let Ok(_permit) = state.slots.acquire().await else {
+        return;
+    };
 
     let spec = {
         let mut jobs = state.jobs.lock().unwrap();
-        let Some(entry) = jobs.get_mut(id) else { return };
+        let Some(entry) = jobs.get_mut(id) else {
+            return;
+        };
         match entry.desired {
             Desired::Run => entry.spec.clone(),
             Desired::Pause => {
@@ -380,8 +397,8 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
         ffmpeg_path().as_deref(),
         &spec.url,
     );
-    let spawned = crate::ytdlp::command(app)
-        .and_then(|c| c.args(args).spawn().map_err(|e| e.to_string()));
+    let spawned =
+        crate::ytdlp::command(app).and_then(|c| c.args(args).spawn().map_err(|e| e.to_string()));
     let (mut rx, child) = match spawned {
         Ok(v) => v,
         Err(e) => return finish_error(app, state, id, e),
@@ -396,7 +413,12 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
             _ => kill_tree(child),
         }
     }
-    let pct = state.jobs.lock().unwrap().get(id).map_or(0.0, |e| e.tracker.overall);
+    let pct = state
+        .jobs
+        .lock()
+        .unwrap()
+        .get(id)
+        .map_or(0.0, |e| e.tracker.overall);
     emit(app, Update::new(id, Status::Downloading).with_percent(pct));
 
     let mut file = None;
@@ -446,7 +468,11 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
         }
         Desired::Run if code == Some(0) => {
             state.jobs.lock().unwrap().remove(id);
-            let kind = if spec.options.kind == Kind::Audio { "audio" } else { "video" };
+            let kind = if spec.options.kind == Kind::Audio {
+                "audio"
+            } else {
+                "video"
+            };
             let title = spec.options.title.as_deref().unwrap_or(&spec.url);
             history::record(app, title, &spec.url, file.as_deref(), kind);
             let mut u = Update::new(id, Status::Done).with_percent(100.0);
@@ -474,14 +500,26 @@ fn finish_error(app: &AppHandle, state: &DownloadState, id: &str, message: Strin
     emit(app, u);
 }
 
-fn handle_line(app: &AppHandle, state: &DownloadState, id: &str, line: &str, file: &mut Option<String>) {
+fn handle_line(
+    app: &AppHandle,
+    state: &DownloadState,
+    id: &str,
+    line: &str,
+    file: &mut Option<String>,
+) {
     if let Some(p) = parse_progress(line) {
         let overall = {
             let mut jobs = state.jobs.lock().unwrap();
-            let Some(entry) = jobs.get_mut(id) else { return };
+            let Some(entry) = jobs.get_mut(id) else {
+                return;
+            };
             entry.tracker.update(p.fraction, &p.filename)
         };
-        let status = if overall >= 99.9 { Status::Processing } else { Status::Downloading };
+        let status = if overall >= 99.9 {
+            Status::Processing
+        } else {
+            Status::Downloading
+        };
         let mut u = Update::new(id, status).with_percent(overall);
         (u.speed, u.eta) = (p.speed, p.eta);
         emit(app, u);
@@ -501,7 +539,9 @@ fn handle_line(app: &AppHandle, state: &DownloadState, id: &str, line: &str, fil
 #[tauri::command]
 pub fn pause_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
     let mut jobs = state.jobs.lock().unwrap();
-    let Some(entry) = jobs.get_mut(&id) else { return };
+    let Some(entry) = jobs.get_mut(&id) else {
+        return;
+    };
     entry.desired = Desired::Pause;
     match entry.child.take() {
         // Running: killing the process ends the event loop, which reports `Paused`.
@@ -520,7 +560,9 @@ pub fn pause_download(app: AppHandle, state: State<'_, DownloadState>, id: Strin
 pub fn resume_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
     let respawn = {
         let mut jobs = state.jobs.lock().unwrap();
-        let Some(entry) = jobs.get_mut(&id) else { return };
+        let Some(entry) = jobs.get_mut(&id) else {
+            return;
+        };
         entry.desired = Desired::Run;
         // If a task is still waiting for a slot it will simply continue.
         !std::mem::replace(&mut entry.alive, true)
@@ -534,7 +576,9 @@ pub fn resume_download(app: AppHandle, state: State<'_, DownloadState>, id: Stri
 #[tauri::command]
 pub fn cancel_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
     let mut jobs = state.jobs.lock().unwrap();
-    let Some(entry) = jobs.get_mut(&id) else { return };
+    let Some(entry) = jobs.get_mut(&id) else {
+        return;
+    };
     entry.desired = Desired::Cancel;
     if let Some(child) = entry.child.take() {
         // Running: the event loop reports `Cancelled` once the process is gone.
@@ -553,7 +597,12 @@ mod tests {
     use super::*;
 
     fn opts(kind: Kind, height: Option<u32>) -> Options {
-        Options { kind, height, dir: None, title: None }
+        Options {
+            kind,
+            height,
+            dir: None,
+            title: None,
+        }
     }
 
     #[test]
@@ -595,7 +644,10 @@ mod tests {
     #[test]
     fn merged_download_progress_never_goes_backwards() {
         let mut t = Tracker::default();
-        t.set_streams(vec!["395".into(), "251".into()], vec![Some(750.0), Some(250.0)]);
+        t.set_streams(
+            vec!["395".into(), "251".into()],
+            vec![Some(750.0), Some(250.0)],
+        );
         let video = "T [x].f395.mp4";
         let audio = "T [x].f251.webm";
         let a = t.update(Some(0.5), video);

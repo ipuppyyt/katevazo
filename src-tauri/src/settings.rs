@@ -15,7 +15,10 @@ pub struct Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Self { download_dir: None, theme: "system".into() }
+        Self {
+            download_dir: None,
+            theme: "system".into(),
+        }
     }
 }
 

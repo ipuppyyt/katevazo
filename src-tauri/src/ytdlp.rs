@@ -32,7 +32,11 @@ pub fn parse_metadata(json: &str) -> Result<Metadata, String> {
     serde_json::from_str(json).map_err(|e| format!("invalid yt-dlp metadata: {e}"))
 }
 
-const EXE: &str = if cfg!(windows) { "yt-dlp.exe" } else { "yt-dlp" };
+const EXE: &str = if cfg!(windows) {
+    "yt-dlp.exe"
+} else {
+    "yt-dlp"
+};
 
 /// Updatable copy in the app data dir. The bundled sidecar sits in the install
 /// directory, which is often read-only, so updates are applied to this copy instead.
@@ -101,7 +105,13 @@ pub async fn fetch_metadata(app: AppHandle, url: String) -> Result<Metadata, Str
     // `--` stops option parsing so a hostile "URL" cannot inject yt-dlp flags.
     let json = run(
         &app,
-        &["--dump-single-json", "--no-warnings", "--no-playlist", "--", &url],
+        &[
+            "--dump-single-json",
+            "--no-warnings",
+            "--no-playlist",
+            "--",
+            &url,
+        ],
     )
     .await?;
     parse_metadata(&json)
