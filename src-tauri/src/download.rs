@@ -1,0 +1,642 @@
+//! Download queue: spawns yt-dlp per job, bounded by a semaphore, and streams
+//! progress to the UI as `download://update` events.
+//!
+//! Pause kills the yt-dlp process but keeps the job, so resuming re-spawns it and
+//! yt-dlp continues from the `.part` file it left on disk.
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
+    },
+};
+
+use crate::{history, settings};
+use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Emitter, Manager, State};
+use tauri_plugin_shell::process::{CommandChild, CommandEvent};
+use tokio::sync::Semaphore;
+
+const MAX_CONCURRENT: usize = 3;
+
+pub struct DownloadState {
+    next_id: AtomicU64,
+    slots: Semaphore,
+    jobs: Mutex<HashMap<String, Entry>>,
+}
+
+impl Default for DownloadState {
+    fn default() -> Self {
+        Self {
+            next_id: AtomicU64::new(1),
+            slots: Semaphore::new(MAX_CONCURRENT),
+            jobs: Mutex::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Desired {
+    Run,
+    Pause,
+    Cancel,
+}
+
+struct Spec {
+    url: String,
+    options: Options,
+    out_dir: PathBuf,
+}
+
+struct Entry {
+    spec: Arc<Spec>,
+    /// What the user last asked for; checked whenever the job is about to (re)start or stops.
+    desired: Desired,
+    /// True while a task is waiting for a slot or running yt-dlp.
+    alive: bool,
+    child: Option<CommandChild>,
+    /// Survives pauses so the progress bar never moves backwards.
+    tracker: Tracker,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Kind {
+    Video,
+    Audio,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct Options {
+    pub kind: Kind,
+    /// Maximum video height (e.g. 1080); `None` means best available.
+    pub height: Option<u32>,
+    /// Overrides the default Downloads folder.
+    pub dir: Option<String>,
+    /// Display title recorded in history.
+    #[serde(default)]
+    pub title: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Status {
+    Queued,
+    Downloading,
+    /// All bytes are in; yt-dlp/ffmpeg is merging or converting.
+    Processing,
+    Paused,
+    Done,
+    Error,
+    Cancelled,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct Update {
+    pub id: String,
+    pub status: Status,
+    pub percent: Option<f64>,
+    pub speed: Option<f64>,
+    pub eta: Option<u64>,
+    pub file: Option<String>,
+    pub error: Option<String>,
+}
+
+impl Update {
+    fn new(id: &str, status: Status) -> Self {
+        Self {
+            id: id.to_string(),
+            status,
+            percent: None,
+            speed: None,
+            eta: None,
+            file: None,
+            error: None,
+        }
+    }
+
+    fn with_percent(mut self, percent: f64) -> Self {
+        self.percent = Some(percent);
+        self
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Progress parsing
+// ---------------------------------------------------------------------------
+
+const PROGRESS_PREFIX: &str = "PROGRESS|";
+const STREAMS_PREFIX: &str = "STREAMS|";
+const FILE_PREFIX: &str = "FILE|";
+
+struct Progress {
+    /// Fraction (0..1) of the *current stream*, when its size is known.
+    fraction: Option<f64>,
+    speed: Option<f64>,
+    eta: Option<u64>,
+    filename: String,
+}
+
+/// Parses `PROGRESS|downloaded|total|total_estimate|speed|eta|filename` (numbers may be "NA").
+/// The filename is last because it may itself contain `|`.
+fn parse_progress(line: &str) -> Option<Progress> {
+    let fields: Vec<&str> = line.strip_prefix(PROGRESS_PREFIX)?.splitn(6, '|').collect();
+    let num = |i: usize| fields.get(i).and_then(|v| v.trim().parse::<f64>().ok());
+    let fraction = match (num(0), num(1).or(num(2))) {
+        (Some(d), Some(t)) if t > 0.0 => Some((d / t).clamp(0.0, 1.0)),
+        _ => None,
+    };
+    Some(Progress {
+        fraction,
+        speed: num(3),
+        eta: num(4).map(|e| e as u64),
+        filename: fields.get(5).unwrap_or(&"").to_string(),
+    })
+}
+
+/// Parses `STREAMS|id0|size0|id1|size1` printed once per video by yt-dlp.
+/// Audio-only or single-file formats print `NA` ids, which yields an empty list.
+fn parse_streams(line: &str) -> Option<(Vec<String>, Vec<Option<f64>>)> {
+    let fields: Vec<&str> = line.strip_prefix(STREAMS_PREFIX)?.split('|').collect();
+    let (mut ids, mut sizes) = (Vec::new(), Vec::new());
+    for pair in fields.chunks(2) {
+        let id = pair[0].trim();
+        if id.is_empty() || id == "NA" {
+            continue;
+        }
+        ids.push(id.to_string());
+        sizes.push(pair.get(1).and_then(|s| s.trim().parse::<f64>().ok()));
+    }
+    Some((ids, sizes))
+}
+
+/// Combines the per-stream progress of a merged download (video + audio are fetched
+/// one after the other) into a single monotonic percentage.
+#[derive(Debug, Default, Clone)]
+struct Tracker {
+    ids: Vec<String>,
+    weights: Vec<f64>,
+    last_file: Option<String>,
+    idx: usize,
+    overall: f64,
+}
+
+impl Tracker {
+    fn set_streams(&mut self, ids: Vec<String>, sizes: Vec<Option<f64>>) {
+        let n = ids.len().max(1);
+        let total: f64 = sizes.iter().flatten().sum();
+        self.weights = if sizes.len() == n && sizes.iter().all(Option::is_some) && total > 0.0 {
+            sizes.iter().map(|s| s.unwrap() / total).collect()
+        } else {
+            vec![1.0 / n as f64; n]
+        };
+        self.ids = ids;
+        self.last_file = None;
+        self.idx = 0;
+    }
+
+    /// Returns the overall percentage (never decreasing).
+    fn update(&mut self, fraction: Option<f64>, filename: &str) -> f64 {
+        if self.weights.is_empty() {
+            self.set_streams(Vec::new(), Vec::new());
+        }
+        // Stream files are named like `Title [id].f137.mp4`; match on the format id.
+        // Without ids (single stream), fall back to counting filename changes.
+        let by_id = self
+            .ids
+            .iter()
+            .position(|id| filename.contains(&format!(".f{id}.")));
+        match by_id {
+            Some(i) => self.idx = i,
+            None => {
+                if self.last_file.as_deref().is_some_and(|f| f != filename) {
+                    self.idx += 1;
+                }
+            }
+        }
+        self.last_file = Some(filename.to_string());
+        self.idx = self.idx.min(self.weights.len() - 1);
+
+        if let Some(f) = fraction {
+            let done: f64 = self.weights[..self.idx].iter().sum();
+            let now = (done + self.weights[self.idx] * f) * 100.0;
+            self.overall = self.overall.max(now.min(100.0));
+        }
+        self.overall
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Process helpers
+// ---------------------------------------------------------------------------
+
+fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str) -> Vec<String> {
+    let mut a: Vec<String> = [
+        "--newline",
+        "--no-playlist",
+        "--progress",
+        "--progress-template",
+        "download:PROGRESS|%(progress.downloaded_bytes)s|%(progress.total_bytes)s|%(progress.total_bytes_estimate)s|%(progress.speed)s|%(progress.eta)s|%(progress.filename)s",
+        "--print",
+        "video:STREAMS|%(requested_formats.0.format_id)s|%(requested_formats.0.filesize,requested_formats.0.filesize_approx)s|%(requested_formats.1.format_id)s|%(requested_formats.1.filesize,requested_formats.1.filesize_approx)s",
+        "--print",
+        "after_move:FILE|%(filepath)s",
+        "-o",
+    ]
+    .map(String::from)
+    .to_vec();
+    a.push(format!("{out_dir}/%(title).150B [%(id)s].%(ext)s"));
+    if let Some(f) = ffmpeg {
+        a.push("--ffmpeg-location".into());
+        a.push(f.into());
+    }
+    match options.kind {
+        Kind::Video => {
+            let sel = match options.height {
+                Some(h) => format!("bv*[height<={h}]+ba/b[height<={h}]"),
+                None => "bv*+ba/b".to_string(),
+            };
+            a.extend(["-f".into(), sel, "--merge-output-format".into(), "mp4".into()]);
+        }
+        Kind::Audio => {
+            a.extend(["-x".into(), "--audio-format".into(), "mp3".into()]);
+        }
+    }
+    // `--` stops option parsing so the URL can never be read as a flag.
+    a.push("--".into());
+    a.push(url.into());
+    a
+}
+
+/// Tauri copies sidecars next to the app executable (without the target triple).
+fn ffmpeg_path() -> Option<String> {
+    let name = if cfg!(windows) { "ffmpeg.exe" } else { "ffmpeg" };
+    let p = std::env::current_exe().ok()?.parent()?.join(name);
+    p.exists().then(|| p.to_string_lossy().into_owned())
+}
+
+/// Stops yt-dlp *and its children*. The PyInstaller build of yt-dlp runs the real
+/// work in a child process, so killing only the parent would leave the download going.
+fn kill_tree(child: CommandChild) {
+    let pid = child.pid().to_string();
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let ok = std::process::Command::new("taskkill")
+            .args(["/PID", &pid, "/T", "/F"])
+            .creation_flags(CREATE_NO_WINDOW)
+            .status()
+            .is_ok_and(|s| s.success());
+        if ok {
+            return;
+        }
+    }
+    #[cfg(unix)]
+    {
+        // The PyInstaller bootloader forwards SIGTERM to its child.
+        let ok = std::process::Command::new("kill")
+            .args(["-TERM", &pid])
+            .status()
+            .is_ok_and(|s| s.success());
+        if ok {
+            return;
+        }
+    }
+    let _ = child.kill();
+}
+
+fn emit(app: &AppHandle, update: Update) {
+    let _ = app.emit("download://update", update);
+}
+
+// ---------------------------------------------------------------------------
+// Scheduling
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub async fn start_download(
+    app: AppHandle,
+    state: State<'_, DownloadState>,
+    url: String,
+    options: Options,
+) -> Result<String, String> {
+    let id = state.next_id.fetch_add(1, Ordering::Relaxed).to_string();
+    let out_dir: PathBuf = match options.dir.clone().or(settings::load(&app).download_dir) {
+        Some(d) => PathBuf::from(d),
+        None => app.path().download_dir().map_err(|e| e.to_string())?,
+    };
+    state.jobs.lock().unwrap().insert(
+        id.clone(),
+        Entry {
+            spec: Arc::new(Spec { url, options, out_dir }),
+            desired: Desired::Run,
+            alive: true,
+            child: None,
+            tracker: Tracker::default(),
+        },
+    );
+    emit(&app, Update::new(&id, Status::Queued));
+    spawn_task(&app, id.clone());
+    Ok(id)
+}
+
+fn spawn_task(app: &AppHandle, id: String) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move { drive(&app, &id).await });
+}
+
+/// Waits for a free slot, then runs the job unless it was paused or cancelled meanwhile.
+async fn drive(app: &AppHandle, id: &str) {
+    let state = app.state::<DownloadState>();
+    let Ok(_permit) = state.slots.acquire().await else { return };
+
+    let spec = {
+        let mut jobs = state.jobs.lock().unwrap();
+        let Some(entry) = jobs.get_mut(id) else { return };
+        match entry.desired {
+            Desired::Run => entry.spec.clone(),
+            Desired::Pause => {
+                entry.alive = false;
+                let pct = entry.tracker.overall;
+                drop(jobs);
+                return emit(app, Update::new(id, Status::Paused).with_percent(pct));
+            }
+            Desired::Cancel => {
+                jobs.remove(id);
+                drop(jobs);
+                return emit(app, Update::new(id, Status::Cancelled));
+            }
+        }
+    };
+    run_job(app, &state, id, &spec).await;
+}
+
+async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) {
+    let args = build_args(
+        &spec.options,
+        &spec.out_dir.to_string_lossy().replace('\\', "/"),
+        ffmpeg_path().as_deref(),
+        &spec.url,
+    );
+    let spawned = crate::ytdlp::command(app)
+        .and_then(|c| c.args(args).spawn().map_err(|e| e.to_string()));
+    let (mut rx, child) = match spawned {
+        Ok(v) => v,
+        Err(e) => return finish_error(app, state, id, e),
+    };
+
+    {
+        let mut jobs = state.jobs.lock().unwrap();
+        match jobs.get_mut(id) {
+            Some(entry) if entry.desired == Desired::Run => entry.child = Some(child),
+            // Paused or cancelled while spawning: stop it now; the event loop below
+            // sees the process end and settles the final state.
+            _ => kill_tree(child),
+        }
+    }
+    let pct = state.jobs.lock().unwrap().get(id).map_or(0.0, |e| e.tracker.overall);
+    emit(app, Update::new(id, Status::Downloading).with_percent(pct));
+
+    let mut file = None;
+    let mut last_err = String::new();
+    let mut code = None;
+    while let Some(event) = rx.recv().await {
+        match event {
+            CommandEvent::Stdout(bytes) => {
+                for line in String::from_utf8_lossy(&bytes).lines() {
+                    handle_line(app, state, id, line, &mut file);
+                }
+            }
+            CommandEvent::Stderr(bytes) => {
+                let text = String::from_utf8_lossy(&bytes);
+                if let Some(l) = text.lines().rev().find(|l| !l.trim().is_empty()) {
+                    last_err = l.trim().to_string();
+                }
+            }
+            CommandEvent::Terminated(p) => {
+                code = p.code;
+                break;
+            }
+            _ => {}
+        }
+    }
+
+    let (desired, pct) = {
+        let mut jobs = state.jobs.lock().unwrap();
+        match jobs.get_mut(id) {
+            Some(e) => {
+                e.child = None;
+                (e.desired, e.tracker.overall)
+            }
+            None => (Desired::Cancel, 0.0),
+        }
+    };
+    match desired {
+        Desired::Cancel => {
+            state.jobs.lock().unwrap().remove(id);
+            emit(app, Update::new(id, Status::Cancelled));
+        }
+        Desired::Pause => {
+            if let Some(e) = state.jobs.lock().unwrap().get_mut(id) {
+                e.alive = false;
+            }
+            emit(app, Update::new(id, Status::Paused).with_percent(pct));
+        }
+        Desired::Run if code == Some(0) => {
+            state.jobs.lock().unwrap().remove(id);
+            let kind = if spec.options.kind == Kind::Audio { "audio" } else { "video" };
+            let title = spec.options.title.as_deref().unwrap_or(&spec.url);
+            history::record(app, title, &spec.url, file.as_deref(), kind);
+            let mut u = Update::new(id, Status::Done).with_percent(100.0);
+            u.file = file;
+            emit(app, u);
+        }
+        Desired::Run => {
+            let msg = if last_err.is_empty() {
+                format!("yt-dlp exited with code {code:?}")
+            } else {
+                last_err
+            };
+            finish_error(app, state, id, msg);
+        }
+    }
+}
+
+/// Marks the job failed but keeps it, so the UI can offer Retry (resume).
+fn finish_error(app: &AppHandle, state: &DownloadState, id: &str, message: String) {
+    if let Some(e) = state.jobs.lock().unwrap().get_mut(id) {
+        e.alive = false;
+    }
+    let mut u = Update::new(id, Status::Error);
+    u.error = Some(message);
+    emit(app, u);
+}
+
+fn handle_line(app: &AppHandle, state: &DownloadState, id: &str, line: &str, file: &mut Option<String>) {
+    if let Some(p) = parse_progress(line) {
+        let overall = {
+            let mut jobs = state.jobs.lock().unwrap();
+            let Some(entry) = jobs.get_mut(id) else { return };
+            entry.tracker.update(p.fraction, &p.filename)
+        };
+        let status = if overall >= 99.9 { Status::Processing } else { Status::Downloading };
+        let mut u = Update::new(id, status).with_percent(overall);
+        (u.speed, u.eta) = (p.speed, p.eta);
+        emit(app, u);
+    } else if let Some((ids, sizes)) = parse_streams(line) {
+        if let Some(entry) = state.jobs.lock().unwrap().get_mut(id) {
+            entry.tracker.set_streams(ids, sizes);
+        }
+    } else if let Some(f) = line.strip_prefix(FILE_PREFIX) {
+        *file = Some(f.trim().to_string());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Controls
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn pause_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
+    let mut jobs = state.jobs.lock().unwrap();
+    let Some(entry) = jobs.get_mut(&id) else { return };
+    entry.desired = Desired::Pause;
+    match entry.child.take() {
+        // Running: killing the process ends the event loop, which reports `Paused`.
+        Some(child) => kill_tree(child),
+        // Waiting for a slot (or still spawning): report immediately.
+        None => {
+            let pct = entry.tracker.overall;
+            drop(jobs);
+            emit(&app, Update::new(&id, Status::Paused).with_percent(pct));
+        }
+    }
+}
+
+/// Resumes a paused job, or retries a failed one.
+#[tauri::command]
+pub fn resume_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
+    let respawn = {
+        let mut jobs = state.jobs.lock().unwrap();
+        let Some(entry) = jobs.get_mut(&id) else { return };
+        entry.desired = Desired::Run;
+        // If a task is still waiting for a slot it will simply continue.
+        !std::mem::replace(&mut entry.alive, true)
+    };
+    emit(&app, Update::new(&id, Status::Queued));
+    if respawn {
+        spawn_task(&app, id);
+    }
+}
+
+#[tauri::command]
+pub fn cancel_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
+    let mut jobs = state.jobs.lock().unwrap();
+    let Some(entry) = jobs.get_mut(&id) else { return };
+    entry.desired = Desired::Cancel;
+    if let Some(child) = entry.child.take() {
+        // Running: the event loop reports `Cancelled` once the process is gone.
+        return kill_tree(child);
+    }
+    if !entry.alive {
+        // Paused or failed: nothing is running, so settle it here.
+        jobs.remove(&id);
+    }
+    drop(jobs);
+    emit(&app, Update::new(&id, Status::Cancelled));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn opts(kind: Kind, height: Option<u32>) -> Options {
+        Options { kind, height, dir: None, title: None }
+    }
+
+    #[test]
+    fn parses_progress_with_total() {
+        let p = parse_progress("PROGRESS|500|1000|NA|2048.5|30|C:/x/a b.mp4").unwrap();
+        assert_eq!(p.fraction, Some(0.5));
+        assert_eq!(p.speed, Some(2048.5));
+        assert_eq!(p.eta, Some(30));
+        assert_eq!(p.filename, "C:/x/a b.mp4");
+    }
+
+    #[test]
+    fn filename_may_contain_pipes() {
+        let p = parse_progress("PROGRESS|1|2|NA|NA|NA|My | Title.f137.mp4").unwrap();
+        assert_eq!(p.filename, "My | Title.f137.mp4");
+    }
+
+    #[test]
+    fn falls_back_to_estimate_and_handles_na() {
+        let p = parse_progress("PROGRESS|250|NA|1000|NA|NA|f").unwrap();
+        assert_eq!(p.fraction, Some(0.25));
+        assert_eq!((p.speed, p.eta), (None, None));
+    }
+
+    #[test]
+    fn ignores_other_lines() {
+        assert!(parse_progress("[download] Destination: x").is_none());
+    }
+
+    #[test]
+    fn parses_streams() {
+        let (ids, sizes) = parse_streams("STREAMS|395|223779|251|252182").unwrap();
+        assert_eq!(ids, ["395", "251"]);
+        assert_eq!(sizes, [Some(223779.0), Some(252182.0)]);
+        let (ids, _) = parse_streams("STREAMS|NA|NA|NA|NA").unwrap();
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn merged_download_progress_never_goes_backwards() {
+        let mut t = Tracker::default();
+        t.set_streams(vec!["395".into(), "251".into()], vec![Some(750.0), Some(250.0)]);
+        let video = "T [x].f395.mp4";
+        let audio = "T [x].f251.webm";
+        let a = t.update(Some(0.5), video);
+        assert!((a - 37.5).abs() < 1e-9);
+        let b = t.update(Some(1.0), video);
+        assert!((b - 75.0).abs() < 1e-9);
+        // Second stream starts again from 0% but the overall bar keeps climbing.
+        let c = t.update(Some(0.0), audio);
+        assert!((c - 75.0).abs() < 1e-9);
+        let d = t.update(Some(1.0), audio);
+        assert!((d - 100.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn resumed_job_skips_finished_stream_without_regressing() {
+        let mut t = Tracker::default();
+        t.set_streams(vec!["395".into(), "251".into()], vec![None, None]);
+        t.update(Some(1.0), "T.f395.mp4"); // 50%
+        // After a resume only the audio stream is downloaded.
+        t.set_streams(vec!["395".into(), "251".into()], vec![None, None]);
+        assert!((t.update(Some(0.2), "T.f251.webm") - 60.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn single_stream_without_ids() {
+        let mut t = Tracker::default();
+        t.set_streams(Vec::new(), Vec::new());
+        assert!((t.update(Some(0.4), "a.webm") - 40.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn url_is_after_option_terminator() {
+        let args = build_args(&opts(Kind::Audio, None), "/tmp", None, "--exec=evil");
+        let n = args.len();
+        assert_eq!(args[n - 2], "--");
+        assert_eq!(args[n - 1], "--exec=evil");
+    }
+
+    #[test]
+    fn video_selector_caps_height() {
+        let args = build_args(&opts(Kind::Video, Some(720)), "/tmp", None, "u");
+        assert!(args.contains(&"bv*[height<=720]+ba/b[height<=720]".to_string()));
+    }
+}
