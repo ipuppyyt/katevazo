@@ -19,3 +19,8 @@ api.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 api.action.onClicked.addListener((tab) => send(tab.id, tab.url));
+
+// The button added to the YouTube player asks for the video it sits in.
+api.runtime.onMessage.addListener((message, sender) => {
+  if (message?.type === "send" && sender.tab) send(sender.tab.id, message.url);
+});
