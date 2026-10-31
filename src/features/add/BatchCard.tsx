@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { fetchMetadata } from "../../lib/api";
+import { useT } from "../../lib/i18n";
 import { useQueue } from "../queue/store";
 import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./BatchCard.module.scss";
@@ -12,6 +13,7 @@ type State = { kind: "waiting" } | { kind: "added" } | { kind: "failed"; message
 
 /** Several links at once (a dropped list, say): one format choice for all of them. */
 export function BatchCard({ links }: { links: string[] }) {
+  const t = useT();
   const [choice, setChoice] = useState<FormatChoice>(defaultChoice);
   const [states, setStates] = useState<Record<string, State>>({});
   const [busy, setBusy] = useState(false);
@@ -46,13 +48,13 @@ export function BatchCard({ links }: { links: string[] }) {
   return (
     <section className={styles.card}>
       <header>
-        <h2 className={styles.title}>{links.length} links</h2>
+        <h2 className={styles.title}>{t("batch.title", { count: links.length })}</h2>
         <p className={styles.sub}>
           {busy
-            ? `Adding… ${added + failed} of ${links.length}`
+            ? t("batch.progress", { done: added + failed, total: links.length })
             : finished
-              ? `${added} added to the queue${failed ? `, ${failed} failed` : ""}`
-              : "Choose a format for all of them, then download."}
+              ? t(failed ? "batch.summaryFailed" : "batch.summary", { added, failed })
+              : t("batch.hint")}
         </p>
       </header>
       <ul className={styles.list}>
@@ -61,7 +63,7 @@ export function BatchCard({ links }: { links: string[] }) {
           return (
             <li key={url} data-state={state?.kind ?? "idle"}>
               <span className={styles.url}>{url}</span>
-              {state?.kind === "added" && <span className={styles.ok}>Added</span>}
+              {state?.kind === "added" && <span className={styles.ok}>{t("batch.added")}</span>}
               {state?.kind === "failed" && (
                 <span className={styles.problem} title={state.message}>
                   {state.message}
@@ -74,7 +76,7 @@ export function BatchCard({ links }: { links: string[] }) {
       <div className={styles.actions}>
         <FormatPicker value={choice} onChange={setChoice} heights={HEIGHTS} />
         <button className={styles.primary} onClick={download} disabled={busy || finished}>
-          {busy ? "Adding…" : `Download ${links.length} links`}
+          {busy ? t("batch.adding") : t("batch.download", { count: links.length })}
         </button>
       </div>
     </section>

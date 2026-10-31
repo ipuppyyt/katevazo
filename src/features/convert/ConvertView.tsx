@@ -2,37 +2,39 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { Icon } from "../../components/Icon";
 import { ToolbarSlot } from "../../components/ToolbarSlot";
 import { openFile, revealFile, type ConvertTarget } from "../../lib/api";
+import { tr, useT, type Key } from "../../lib/i18n";
 import styles from "./ConvertView.module.scss";
 import { useConvert, type ConvertItem } from "./store";
 
-const VIDEO: { value: ConvertTarget; label: string }[] = [
-  { value: "mp4", label: "MP4 (H.264)" },
-  { value: "mkv", label: "MKV (keeps the streams as they are)" },
-  { value: "webm", label: "WebM (VP9)" },
+const VIDEO: { value: ConvertTarget; label: Key }[] = [
+  { value: "mp4", label: "conv.mp4" },
+  { value: "mkv", label: "conv.mkv" },
+  { value: "webm", label: "conv.webm" },
 ];
 
-const AUDIO: { value: ConvertTarget; label: string }[] = [
-  { value: "mp3", label: "MP3" },
-  { value: "m4a", label: "M4A (AAC)" },
-  { value: "opus", label: "Opus" },
-  { value: "flac", label: "FLAC (lossless)" },
-  { value: "wav", label: "WAV (lossless)" },
+const AUDIO: { value: ConvertTarget; label: Key }[] = [
+  { value: "mp3", label: "conv.mp3" },
+  { value: "m4a", label: "conv.m4a" },
+  { value: "opus", label: "conv.opus" },
+  { value: "flac", label: "conv.flac" },
+  { value: "wav", label: "conv.wav" },
 ];
 
 function statusText(i: ConvertItem): string {
   switch (i.status) {
     case "waiting":
-      return "Waiting";
+      return tr("conv.waiting");
     case "converting":
-      return i.percent > 0 ? `Converting · ${Math.floor(i.percent)}%` : "Converting…";
+      return i.percent > 0 ? tr("conv.percent", { percent: Math.floor(i.percent) }) : tr("conv.working");
     case "done":
-      return `Saved as ${i.output?.split(/[\\/]/).pop() ?? "a new file"}`;
+      return tr("conv.saved", { name: i.output?.split(/[\\/]/).pop() ?? "" });
     case "error":
-      return i.error ?? "Failed";
+      return i.error ?? tr("conv.failed");
   }
 }
 
 export function ConvertView() {
+  const t = useT();
   const { items, target, running, setTarget, addFiles, start, cancel, remove, clearFinished } = useConvert();
 
   async function choose() {
@@ -40,7 +42,7 @@ export function ConvertView() {
       multiple: true,
       filters: [
         {
-          name: "Video and audio",
+          name: tr("conv.filter"),
           extensions: ["mp4", "mkv", "webm", "mov", "avi", "flv", "wmv", "m4v", "ts", "mp3", "m4a", "aac", "opus", "ogg", "flac", "wav", "wma"],
         },
       ],
@@ -56,40 +58,40 @@ export function ConvertView() {
       <ToolbarSlot>
         {hasFinished && (
           <button className={styles.plain} onClick={clearFinished}>
-            Clear finished
+            {t("conv.clear")}
           </button>
         )}
         <button className={styles.tinted} onClick={choose}>
-          Add Files…
+          {t("conv.add")}
         </button>
       </ToolbarSlot>
 
       <div className={styles.bar}>
         <label className={styles.target}>
-          <span>Convert to</span>
-          <select value={target} onChange={(e) => setTarget(e.currentTarget.value as ConvertTarget)} aria-label="Convert to">
-            <optgroup label="Video">
+          <span>{t("conv.to")}</span>
+          <select value={target} onChange={(e) => setTarget(e.currentTarget.value as ConvertTarget)} aria-label={t("conv.to")}>
+            <optgroup label={t("conv.video")}>
               {VIDEO.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>{t(o.label)}</option>
               ))}
             </optgroup>
-            <optgroup label="Audio only">
+            <optgroup label={t("conv.audio")}>
               {AUDIO.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>{t(o.label)}</option>
               ))}
             </optgroup>
           </select>
         </label>
         <button className={styles.primary} onClick={start} disabled={running || waiting === 0}>
-          {running ? "Converting…" : waiting > 1 ? `Convert ${waiting} files` : "Convert"}
+          {running ? t("conv.working") : waiting > 1 ? t("conv.goMany", { count: waiting }) : t("conv.go")}
         </button>
       </div>
 
       {items.length === 0 ? (
         <div className={styles.empty}>
           <Icon name="convert" size={44} />
-          <h2>No Files</h2>
-          <p>Add videos or music to change their format. The originals are never touched.</p>
+          <h2>{t("conv.emptyTitle")}</h2>
+          <p>{t("conv.emptyHint")}</p>
         </div>
       ) : (
         <ul className={styles.list}>
@@ -105,17 +107,17 @@ export function ConvertView() {
               <div className={styles.actions}>
                 {i.status === "done" && i.output && (
                   <>
-                    <button title="Open" aria-label="Open" onClick={() => openFile(i.output!)}>
+                    <button title={t("common.open")} aria-label={t("common.open")} onClick={() => openFile(i.output!)}>
                       <Icon name="play" size={14} />
                     </button>
-                    <button title="Show in folder" aria-label="Show in folder" onClick={() => revealFile(i.output!)}>
+                    <button title={t("common.reveal")} aria-label={t("common.reveal")} onClick={() => revealFile(i.output!)}>
                       <Icon name="folder" size={14} />
                     </button>
                   </>
                 )}
                 <button
-                  title={i.status === "converting" ? "Cancel" : "Remove"}
-                  aria-label={i.status === "converting" ? "Cancel" : "Remove"}
+                  title={i.status === "converting" ? t("q.cancel") : t("q.remove")}
+                  aria-label={i.status === "converting" ? t("q.cancel") : t("q.remove")}
                   onClick={() => (i.status === "converting" ? cancel(i.id) : remove(i.id))}
                 >
                   <Icon name="close" size={14} />

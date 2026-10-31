@@ -9,6 +9,7 @@ import {
   revealFile,
   stopRecording,
 } from "../../lib/api";
+import { tr, useT } from "../../lib/i18n";
 import styles from "./QueueList.module.scss";
 import { useQueue, type Job } from "./store";
 
@@ -18,31 +19,32 @@ function statusText(j: Job): string {
     case "queued":
       if (j.error) return j.error;
       if (j.scheduledFor && j.scheduledFor > Date.now()) {
-        return `Scheduled for ${new Date(j.scheduledFor).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`;
+        return tr("q.scheduled", { time: new Date(j.scheduledFor).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) });
       }
-      return "Waiting…";
+      return tr("q.waiting");
     case "downloading":
       return [
-        j.live ? "Recording" : (pct ?? "Starting…"),
+        j.live ? tr("q.recording") : (pct ?? tr("q.starting")),
         j.speed != null ? formatSpeed(j.speed) : null,
-        j.eta != null ? `${formatEta(j.eta)} left` : null,
+        j.eta != null ? tr("q.left", { time: formatEta(j.eta) }) : null,
       ]
         .filter(Boolean)
         .join(" · ");
     case "processing":
-      return "Finishing up…";
+      return tr("q.finishing");
     case "paused":
-      return pct ? `Paused · ${pct}` : "Paused";
+      return pct ? tr("q.pausedAt", { percent: pct }) : tr("q.paused");
     case "done":
-      return j.error ?? "Complete";
+      return j.error ?? tr("q.complete");
     case "cancelled":
-      return "Cancelled";
+      return tr("q.cancelled");
     case "error":
-      return j.error ?? "Failed";
+      return j.error ?? tr("q.failed");
   }
 }
 
 function Controls({ job }: { job: Job }) {
+  const t = useT();
   const remove = useQueue((s) => s.remove);
   const note = useQueue((s) => s.note);
   const open = (path: string) => openFile(path).catch((e) => note(job.id, String(e)));
@@ -53,14 +55,14 @@ function Controls({ job }: { job: Job }) {
       return (
         <>
           {job.live && job.status === "downloading" && (
-            <button className={styles.icon} title="Stop and save" aria-label="Stop and save" onClick={() => stopRecording(job.id)}>
+            <button className={styles.icon} title={t("q.stop")} aria-label={t("q.stop")} onClick={() => stopRecording(job.id)}>
               <Icon name="stop" size={14} />
             </button>
           )}
-          <button className={styles.icon} title="Pause" aria-label="Pause" onClick={() => pauseDownload(job.id)}>
+          <button className={styles.icon} title={t("q.pause")} aria-label={t("q.pause")} onClick={() => pauseDownload(job.id)}>
             <Icon name="pause" size={14} />
           </button>
-          <button className={styles.icon} title="Cancel" aria-label="Cancel" onClick={() => cancelDownload(job.id)}>
+          <button className={styles.icon} title={t("q.cancel")} aria-label={t("q.cancel")} onClick={() => cancelDownload(job.id)}>
             <Icon name="close" size={14} />
           </button>
         </>
@@ -70,10 +72,10 @@ function Controls({ job }: { job: Job }) {
     case "paused":
       return (
         <>
-          <button className={styles.icon} title="Resume" aria-label="Resume" onClick={() => resumeDownload(job.id)}>
+          <button className={styles.icon} title={t("q.resume")} aria-label={t("q.resume")} onClick={() => resumeDownload(job.id)}>
             <Icon name="play" size={14} />
           </button>
-          <button className={styles.icon} title="Cancel" aria-label="Cancel" onClick={() => cancelDownload(job.id)}>
+          <button className={styles.icon} title={t("q.cancel")} aria-label={t("q.cancel")} onClick={() => cancelDownload(job.id)}>
             <Icon name="close" size={14} />
           </button>
         </>
@@ -81,10 +83,10 @@ function Controls({ job }: { job: Job }) {
     case "error":
       return (
         <>
-          <button className={styles.icon} title="Retry" aria-label="Retry" onClick={() => resumeDownload(job.id)}>
+          <button className={styles.icon} title={t("q.retry")} aria-label={t("q.retry")} onClick={() => resumeDownload(job.id)}>
             <Icon name="retry" size={14} />
           </button>
-          <button className={styles.icon} title="Remove" aria-label="Remove" onClick={() => { cancelDownload(job.id); remove(job.id); }}>
+          <button className={styles.icon} title={t("q.remove")} aria-label={t("q.remove")} onClick={() => { cancelDownload(job.id); remove(job.id); }}>
             <Icon name="close" size={14} />
           </button>
         </>
@@ -94,22 +96,22 @@ function Controls({ job }: { job: Job }) {
         <>
           {job.file && (
             <>
-              <button className={styles.icon} title="Open" aria-label="Open" onClick={() => open(job.file!)}>
+              <button className={styles.icon} title={t("common.open")} aria-label={t("common.open")} onClick={() => open(job.file!)}>
                 <Icon name="play" size={14} />
               </button>
-              <button className={styles.icon} title="Show in folder" aria-label="Show in folder" onClick={() => reveal(job.file!)}>
+              <button className={styles.icon} title={t("common.reveal")} aria-label={t("common.reveal")} onClick={() => reveal(job.file!)}>
                 <Icon name="folder" size={14} />
               </button>
             </>
           )}
-          <button className={styles.icon} title="Remove" aria-label="Remove" onClick={() => remove(job.id)}>
+          <button className={styles.icon} title={t("q.remove")} aria-label={t("q.remove")} onClick={() => remove(job.id)}>
             <Icon name="close" size={14} />
           </button>
         </>
       );
     default:
       return (
-        <button className={styles.icon} title="Remove" aria-label="Remove" onClick={() => remove(job.id)}>
+        <button className={styles.icon} title={t("q.remove")} aria-label={t("q.remove")} onClick={() => remove(job.id)}>
           <Icon name="close" size={14} />
         </button>
       );
@@ -117,6 +119,7 @@ function Controls({ job }: { job: Job }) {
 }
 
 export function QueueList() {
+  const t = useT();
   const jobs = useQueue((s) => s.jobs);
   const clearFinished = useQueue((s) => s.clearFinished);
   if (jobs.length === 0) return null;
@@ -125,8 +128,8 @@ export function QueueList() {
   return (
     <section>
       <div className={styles.header}>
-        <h2>Queue</h2>
-        {hasFinished && <button onClick={clearFinished}>Clear finished</button>}
+        <h2>{t("q.title")}</h2>
+        {hasFinished && <button onClick={clearFinished}>{t("q.clear")}</button>}
       </div>
       <ul className={styles.list}>
         {jobs.map((j) => (

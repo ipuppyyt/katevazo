@@ -8,15 +8,17 @@ import {
   type Subscription,
 } from "../../lib/api";
 import { describe } from "../queue/store";
+import { tr, useT } from "../../lib/i18n";
 import styles from "./SubscriptionsView.module.scss";
 
 function lastChecked(s: Subscription): string {
   if (s.last_error) return s.last_error;
-  if (!s.last_checked) return "Not checked yet";
-  return `Checked ${new Date(s.last_checked).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`;
+  if (!s.last_checked) return tr("sub.never");
+  return tr("sub.checked", { time: new Date(s.last_checked).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) });
 }
 
 export function SubscriptionsView() {
+  const t = useT();
   const [subs, setSubs] = useState<Subscription[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
@@ -30,7 +32,7 @@ export function SubscriptionsView() {
     setResult(null);
     try {
       const queued = await checkSubscriptions();
-      setResult(queued === 0 ? "No new videos" : `${queued} new ${queued === 1 ? "video" : "videos"} queued`);
+      setResult(queued === 0 ? t("palette.checked_zero") : t("palette.checked", { count: queued }));
       await load();
     } catch (e) {
       setError(String(e));
@@ -54,8 +56,8 @@ export function SubscriptionsView() {
     return (
       <div className={styles.empty}>
         <Icon name="rss" size={44} />
-        <h2>No Subscriptions</h2>
-        <p>Paste a channel or playlist link in Downloads and choose Subscribe.</p>
+        <h2>{t("sub.emptyTitle")}</h2>
+        <p>{t("sub.emptyHint")}</p>
       </div>
     );
 
@@ -64,7 +66,7 @@ export function SubscriptionsView() {
       <ToolbarSlot>
         {result && <span className={styles.count}>{result}</span>}
         <button className={styles.check} onClick={checkNow} disabled={checking}>
-          {checking ? "Checking…" : "Check Now"}
+          {checking ? t("sub.checking") : t("sub.check")}
         </button>
       </ToolbarSlot>
       <ul className={styles.list}>
@@ -79,7 +81,7 @@ export function SubscriptionsView() {
               <span className={s.last_error ? styles.problem : styles.meta}>{lastChecked(s)}</span>
             </div>
             <div className={styles.actions}>
-              <button title="Unsubscribe" aria-label="Unsubscribe" onClick={() => remove(s.id)}>
+              <button title={t("sub.unsub")} aria-label={t("sub.unsub")} onClick={() => remove(s.id)}>
                 <Icon name="close" size={14} />
               </button>
             </div>
@@ -87,7 +89,7 @@ export function SubscriptionsView() {
         ))}
       </ul>
       <p className={styles.footnote}>
-        New uploads download automatically every 30 minutes while Katevazo is open.
+        {t("sub.footnote")}
       </p>
     </>
   );

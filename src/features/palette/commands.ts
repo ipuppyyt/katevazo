@@ -42,7 +42,7 @@ export async function pasteLink() {
 export function focusLinkField() {
   useApp.getState().setTab("Downloads");
   // The field only exists once the Downloads toolbar has rendered.
-  window.setTimeout(() => document.querySelector<HTMLInputElement>('input[aria-label="Video URL"]')?.focus(), 0);
+  window.setTimeout(() => document.querySelector<HTMLInputElement>('input[data-link-field]')?.focus(), 0);
 }
 
 const THEMES: Theme[] = ["system", "light", "dark"];

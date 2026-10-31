@@ -1,4 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
+import { tr } from "../../lib/i18n";
 import { create } from "zustand";
 import {
   startDownload,
@@ -44,7 +45,7 @@ export function describe(o: DownloadOptions): string {
     const bitrate = o.audio_bitrate ? ` · ${o.audio_bitrate} kbps` : "";
     return (o.audio_format ?? "mp3").toUpperCase() + bitrate;
   }
-  const quality = o.height ? `${o.height}p` : "Best";
+  const quality = o.height ? `${o.height}p` : tr("fmt.best");
   const codec = o.codec && o.codec !== "any" ? ` · ${o.codec.toUpperCase()}` : "";
   return `${quality} · ${(o.container ?? "mp4").toUpperCase()}${codec}`;
 }

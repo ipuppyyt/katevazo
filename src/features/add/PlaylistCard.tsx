@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { addSubscription, formatDuration, type Playlist } from "../../lib/api";
+import { useT } from "../../lib/i18n";
 import { useQueue } from "../queue/store";
 import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./PlaylistCard.module.scss";
@@ -7,6 +8,7 @@ import styles from "./PlaylistCard.module.scss";
 const HEIGHTS = [2160, 1440, 1080, 720, 480, 360];
 
 export function PlaylistCard({ playlist, url }: { playlist: Playlist; url: string }) {
+  const t = useT();
   const { entries } = playlist;
   const [selected, setSelected] = useState(() => new Set(entries.map((e) => e.id)));
   const [choice, setChoice] = useState<FormatChoice>(defaultChoice);
@@ -56,7 +58,7 @@ export function PlaylistCard({ playlist, url }: { playlist: Playlist; url: strin
         <div className={styles.titles}>
           <h2 className={styles.title}>{playlist.title}</h2>
           <p className={styles.sub}>
-            {[playlist.uploader, `${entries.length} videos`].filter(Boolean).join(" · ")}
+            {[playlist.uploader, t("pl.videos", { count: entries.length })].filter(Boolean).join(" · ")}
           </p>
         </div>
         <label className={styles.all}>
@@ -67,7 +69,7 @@ export function PlaylistCard({ playlist, url }: { playlist: Playlist; url: strin
               setSelected(all ? new Set() : new Set(entries.map((e) => e.id)))
             }
           />
-          Select all
+          {t("pl.selectAll")}
         </label>
       </header>
 
@@ -95,19 +97,19 @@ export function PlaylistCard({ playlist, url }: { playlist: Playlist; url: strin
       <div className={styles.actions}>
         <FormatPicker value={choice} onChange={setChoice} heights={HEIGHTS} />
         <button className={styles.secondary} onClick={subscribe} disabled={subscribed}>
-          {subscribed ? "Subscribed" : "Subscribe"}
+          {subscribed ? t("pl.subscribed") : t("pl.subscribe")}
         </button>
         <button
           className={styles.primary}
           onClick={download}
           disabled={busy || selected.size === 0}
         >
-          {selected.size === 1 ? "Download 1 video" : `Download ${selected.size} videos`}
+          {t("pl.download", { count: selected.size })}
         </button>
       </div>
       {subscribed && (
         <p className={styles.note}>
-          New uploads will download automatically while Katevazo is open, in the format chosen above.
+          {t("pl.subNote")}
         </p>
       )}
       {error && <p className={styles.error}>{error}</p>}

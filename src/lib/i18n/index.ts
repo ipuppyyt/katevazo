@@ -58,3 +58,6 @@ export function useT(): T {
 }
 
 export type { Key };
+
+/** `translate` for code outside components, using the current language. */
+export const tr: T = (key, vars) => translate(useLang.getState().lang, key, vars);

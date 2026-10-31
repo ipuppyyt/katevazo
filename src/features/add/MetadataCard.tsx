@@ -5,6 +5,7 @@ import {
   formatDuration,
   type Metadata,
 } from "../../lib/api";
+import { useT } from "../../lib/i18n";
 import { useQueue } from "../queue/store";
 import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./MetadataCard.module.scss";
@@ -13,6 +14,7 @@ import { defaultSchedule, resolveSchedule, ScheduleControl } from "./ScheduleCon
 import { defaultTrim, resolveTrim, TrimControl } from "./TrimControl";
 
 export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
+  const t = useT();
   const heights = availableHeights(meta.formats);
   const live = meta.live_status === "is_live" || meta.live_status === "is_upcoming";
   const upcoming = meta.live_status === "is_upcoming";
@@ -62,8 +64,10 @@ export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
         {live && (
           <p className={styles.live}>
             {upcoming
-              ? `Not live yet${meta.release_timestamp ? `: starts ${new Date(meta.release_timestamp * 1000).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}` : ""}. Katevazo will wait and record it. Keep the app open.`
-              : "Live now. Recording starts at this moment and runs until you press Stop."}
+              ? meta.release_timestamp
+                ? t("meta.soonAt", { time: new Date(meta.release_timestamp * 1000).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) })
+                : t("meta.soon")
+              : t("meta.liveNow")}
           </p>
         )}
         <div className={styles.actions}>
@@ -79,7 +83,7 @@ export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
             {!live && <ScheduleControl value={schedule} onChange={setSchedule} />}
           </div>
           <button className={styles.primary} onClick={live ? record : download}>
-            {live ? (upcoming ? "Wait and record" : "Record") : "Download"}
+            {live ? (upcoming ? t("meta.waitRecord") : t("meta.record")) : t("meta.button")}
           </button>
         </div>
         {error && <p className={styles.error}>{error}</p>}

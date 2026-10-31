@@ -1,12 +1,12 @@
+import type { Key } from "./i18n";
+
 export interface Site {
   name: string;
   /** Matches the host name, e.g. "www.vimeo.com". */
   host: RegExp;
   /** Something worth knowing before downloading from this site. */
-  note?: string;
+  note?: Key;
 }
-
-const SIGN_IN = "Settings → Network → Sign in with browser cookies";
 
 /** Sites Katevazo offers to download from when their link is copied. yt-dlp handles many more. */
 export const SITES: Site[] = [
@@ -14,32 +14,32 @@ export const SITES: Site[] = [
   {
     name: "Vimeo",
     host: /^(www\.|player\.)?vimeo\.com$/,
-    note: `Vimeo often asks you to sign in before it shares a video. Pick your browser under ${SIGN_IN}.`,
+    note: "site.vimeo",
   },
   {
     name: "SoundCloud",
     host: /^(www\.|m\.)?soundcloud\.com$/,
-    note: "SoundCloud only has audio, so choose an audio format.",
+    note: "site.soundcloud",
   },
   {
     name: "X",
     host: /^(www\.|mobile\.)?(x\.com|twitter\.com)$/,
-    note: `Only posts that contain a video can be downloaded. Some need you to be signed in: ${SIGN_IN}.`,
+    note: "site.x",
   },
   {
     name: "Instagram",
     host: /^(www\.)?instagram\.com$/,
-    note: `Instagram usually wants you to be signed in. Pick your browser under ${SIGN_IN}.`,
+    note: "site.instagram",
   },
   {
     name: "TikTok",
     host: /^(www\.|m\.|vm\.)?tiktok\.com$/,
-    note: "TikTok changes often. If a download fails, update yt-dlp in Settings and try again.",
+    note: "site.tiktok",
   },
   {
     name: "Twitch",
     host: /^(www\.|m\.|clips\.)?twitch\.tv$/,
-    note: "Past broadcasts and clips download normally. A channel that is live is recorded until you press Stop.",
+    note: "site.twitch",
   },
   { name: "Facebook", host: /^(www\.|m\.|web\.)?(facebook\.com|fb\.watch)$/ },
   { name: "Reddit", host: /^(www\.|old\.)?reddit\.com$/ },

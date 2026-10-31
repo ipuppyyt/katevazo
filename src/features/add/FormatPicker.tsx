@@ -1,5 +1,6 @@
 import { Segmented } from "../../components/Segmented";
 import type { AudioFormat, Codec, Container, DownloadOptions } from "../../lib/api";
+import { useLang, useT, type Key } from "../../lib/i18n";
 import styles from "./FormatPicker.module.scss";
 
 export interface FormatChoice {
@@ -48,16 +49,12 @@ export function toOptions(c: FormatChoice): DownloadOptions {
 function languageName(code: string): string {
   const base = code.replace(/-orig$/, "");
   try {
-    return new Intl.DisplayNames(["en"], { type: "language" }).of(base) ?? base;
+    return new Intl.DisplayNames([useLang.getState().lang], { type: "language" }).of(base) ?? base;
   } catch {
     return base;
   }
 }
 
-const KINDS = [
-  { value: "video", label: "Video" },
-  { value: "audio", label: "Audio" },
-] as const;
 
 const CONTAINERS: { value: Container; label: string }[] = [
   { value: "mp4", label: "MP4" },
@@ -65,11 +62,11 @@ const CONTAINERS: { value: Container; label: string }[] = [
   { value: "webm", label: "WebM" },
 ];
 
-const CODEC_LABELS: Record<Codec, string> = {
-  any: "Any codec",
-  h264: "H.264",
-  vp9: "VP9",
-  av1: "AV1",
+const CODEC_LABELS: Record<Codec, Key> = {
+  any: "fmt.anyCodec",
+  h264: "fmt.h264",
+  vp9: "fmt.vp9",
+  av1: "fmt.av1",
 };
 
 const AUDIO_FORMATS: { value: AudioFormat; label: string }[] = [
@@ -97,6 +94,7 @@ interface Props {
 
 /** Format controls shared by the single-video and playlist cards. */
 export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Props) {
+  const t = useT();
   const set = (patch: Partial<FormatChoice>) => onChange({ ...value, ...patch });
 
   // H.264 cannot be stored in WebM, so it is not offered there.
@@ -108,9 +106,12 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
   return (
     <div className={styles.picker}>
       <Segmented
-        label="Format"
+        label={t("fmt.format")}
         value={value.kind}
-        options={KINDS}
+        options={[
+          { value: "video", label: t("fmt.video") },
+          { value: "audio", label: t("fmt.audio") },
+        ]}
         onChange={(kind) => set({ kind })}
       />
       {value.kind === "video" ? (
@@ -120,9 +121,9 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
             onChange={(e) =>
               set({ height: e.currentTarget.value ? Number(e.currentTarget.value) : null })
             }
-            aria-label="Video quality"
+            aria-label={t("fmt.quality")}
           >
-            <option value="">Best quality</option>
+            <option value="">{t("fmt.bestQuality")}</option>
             {heights.map((h) => (
               <option key={h} value={h}>{`${h}p`}</option>
             ))}
@@ -136,7 +137,7 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
                 codec: container === "webm" && value.codec === "h264" ? "any" : value.codec,
               });
             }}
-            aria-label="Container"
+            aria-label={t("fmt.container")}
           >
             {CONTAINERS.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
@@ -145,10 +146,10 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
           <select
             value={codecOptions.includes(value.codec) ? value.codec : "any"}
             onChange={(e) => set({ codec: e.currentTarget.value as Codec })}
-            aria-label="Video codec"
+            aria-label={t("fmt.codec")}
           >
             {codecOptions.map((c) => (
-              <option key={c} value={c}>{CODEC_LABELS[c]}</option>
+              <option key={c} value={c}>{t(CODEC_LABELS[c])}</option>
             ))}
           </select>
         </>
@@ -157,7 +158,7 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
           <select
             value={value.audioFormat}
             onChange={(e) => set({ audioFormat: e.currentTarget.value as AudioFormat })}
-            aria-label="Audio format"
+            aria-label={t("fmt.audioFormat")}
           >
             {AUDIO_FORMATS.map((f) => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -169,15 +170,15 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
               onChange={(e) =>
                 set({ audioBitrate: e.currentTarget.value ? Number(e.currentTarget.value) : null })
               }
-              aria-label="Audio bitrate"
+              aria-label={t("fmt.bitrate")}
             >
-              <option value="">Best quality</option>
+              <option value="">{t("fmt.bestQuality")}</option>
               {BITRATES.map((b) => (
                 <option key={b} value={b}>{`${b} kbps`}</option>
               ))}
             </select>
           ) : (
-            <span className={styles.hint}>Lossless</span>
+            <span className={styles.hint}>{t("fmt.lossless")}</span>
           )}
         </>
       )}
@@ -186,15 +187,15 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
           <select
             value={value.subtitle}
             onChange={(e) => set({ subtitle: e.currentTarget.value })}
-            aria-label="Subtitles"
+            aria-label={t("fmt.subtitles")}
           >
-            <option value="">No subtitles</option>
+            <option value="">{t("fmt.noSubs")}</option>
             {subtitles.manual.map((l) => (
               <option key={l} value={l}>{languageName(l)}</option>
             ))}
             {subtitles.auto.map((l) => (
               <option key={`auto:${l}`} value={`auto:${l}`}>
-                {`${languageName(l)} (auto-generated)`}
+                {t("fmt.auto", { language: languageName(l) })}
               </option>
             ))}
           </select>
@@ -205,7 +206,7 @@ export function FormatPicker({ value, onChange, heights, codecs, subtitles }: Pr
                 checked={value.embedSubtitles}
                 onChange={(e) => set({ embedSubtitles: e.currentTarget.checked })}
               />
-              Embed in video
+              {t("fmt.embed")}
             </label>
           )}
         </>

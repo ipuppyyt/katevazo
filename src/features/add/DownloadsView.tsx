@@ -9,6 +9,7 @@ import {
   type Metadata,
   type Playlist,
 } from "../../lib/api";
+import { useT } from "../../lib/i18n";
 import { QueueList } from "../queue/QueueList";
 import { useQueue } from "../queue/store";
 import styles from "./DownloadsView.module.scss";
@@ -18,6 +19,7 @@ import { PlaylistCard } from "./PlaylistCard";
 import { useClipboardLink } from "./useClipboardLink";
 
 export function DownloadsView({ active }: { active: boolean }) {
+  const t = useT();
   const hasJobs = useQueue((s) => s.jobs.length > 0);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -80,12 +82,13 @@ export function DownloadsView({ active }: { active: boolean }) {
             <input
               value={url}
               onChange={(e) => setUrl(e.currentTarget.value)}
-              placeholder="Paste a video link"
-              aria-label="Video URL"
+              placeholder={t("dl.placeholder")}
+              aria-label={t("dl.field")}
+              data-link-field
               spellCheck={false}
             />
             <button type="submit" disabled={loading || !url.trim()}>
-              {loading ? "Fetching…" : "Fetch"}
+              {loading ? t("dl.fetching") : t("dl.fetch")}
             </button>
           </form>
         </ToolbarSlot>
@@ -94,7 +97,7 @@ export function DownloadsView({ active }: { active: boolean }) {
         <div className={styles.offer}>
           <Icon name="link" size={14} />
           <span className={styles.offerText}>
-            Link copied: <strong>{clipboard.link}</strong>
+            {t("dl.copied")} <strong>{clipboard.link}</strong>
           </span>
           <button
             className={styles.offerPrimary}
@@ -106,7 +109,7 @@ export function DownloadsView({ active }: { active: boolean }) {
             Fetch
           </button>
           <button className={styles.offerPlain} onClick={clipboard.dismiss}>
-            Dismiss
+            {t("dl.dismiss")}
           </button>
         </div>
       )}
@@ -118,8 +121,8 @@ export function DownloadsView({ active }: { active: boolean }) {
       {!meta && !playlist && !batch && !error && !hasJobs && (
         <div className={styles.empty}>
           <Icon name="tray" size={44} />
-          <h2>No Downloads</h2>
-          <p>Paste a link in the toolbar and press Fetch.</p>
+          <h2>{t("dl.emptyTitle")}</h2>
+          <p>{t("dl.emptyHint")}</p>
         </div>
       )}
     </>
