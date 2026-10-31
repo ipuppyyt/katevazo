@@ -16,6 +16,12 @@ It needs Katevazo to be installed, since that registers the `katevazo://` addres
 3. Click the extension's icon on a video page, or right-click a link and choose
    **Send link to Katevazo**.
 
+## Publish it
+
+Run `npm run pack:extension`. It writes `dist/katevazo-extension-<version>-chromium.zip` (Chrome and
+Edge) and `-firefox.zip`, which differ only in their manifest: Chromium wants a
+`service_worker` background and Firefox wants `scripts`.
+
 ## Install it (Firefox)
 
 Open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on** and pick

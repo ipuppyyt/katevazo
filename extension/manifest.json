@@ -8,10 +8,7 @@
     "contextMenus"
   ],
   "background": {
-    "service_worker": "background.js",
-    "scripts": [
-      "background.js"
-    ]
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
@@ -32,15 +29,5 @@
   },
   "icons": {
     "128": "icon.png"
-  },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "send-to-katevazo@katevazo.app",
-      "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
-      }
-    }
   }
 }
