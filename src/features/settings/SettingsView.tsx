@@ -31,6 +31,12 @@ const SPEED_LIMITS = [256, 512, 1024, 2048, 5120, 10240];
 const speedLabel = (kbps: number) =>
   kbps >= 1024 ? `${kbps / 1024} MB/s` : `${kbps} KB/s`;
 
+const SPONSORBLOCK = [
+  { value: "off", label: "Off" },
+  { value: "mark", label: "Mark" },
+  { value: "remove", label: "Skip" },
+] as const;
+
 const BROWSERS = [
   { value: "firefox", label: "Firefox" },
   { value: "chrome", label: "Chrome" },
@@ -222,6 +228,26 @@ export function SettingsView() {
                 <option key={n} value={n}>{n === 0 ? "Never" : `Up to ${n}×`}</option>
               ))}
             </select>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2 className={styles.heading}>SponsorBlock</h2>
+        <div className={styles.group}>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Sponsor segments</span>
+              <small>
+                Use community-submitted timestamps to handle sponsors, self-promotion and
+                reminders to like and subscribe
+              </small>
+            </div>
+            <Segmented
+              label="SponsorBlock"
+              value={settings.sponsorblock}
+              options={SPONSORBLOCK}
+              onChange={(sponsorblock) => save({ ...settings, sponsorblock })}
+            />
           </div>
         </div>
       </section>

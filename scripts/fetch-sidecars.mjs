@@ -1,4 +1,4 @@
-// Fetches yt-dlp, ffmpeg and Deno for the host platform into src-tauri/binaries using the
+// Fetches yt-dlp, ffmpeg, ffprobe and Deno for the host platform into src-tauri/binaries using the
 // `<name>-<target-triple>[.exe]` naming that Tauri's `externalBin` requires.
 // Run on each OS (CI does this per matrix entry): `npm run sidecars`.
 import { execFileSync, execSync } from "node:child_process";
@@ -42,6 +42,32 @@ function copyFfmpeg() {
   console.log("ffmpeg ->", dest);
 }
 
+// yt-dlp needs ffprobe to read a file's duration before it cuts sponsor segments out.
+function copyFfprobe() {
+  const { path: src } = createRequire(import.meta.url)("ffprobe-static");
+  if (!src) throw new Error("ffprobe-static has no binary for this platform");
+  const dest = join(outDir, `ffprobe-${triple}${ext}`);
+  copyFileSync(src, dest);
+  chmodSync(dest, 0o755);
+  console.log("ffprobe ->", dest);
+}
+
+// Each OS has its own reliable way to read a zip. `tar` is avoided on Windows because Git's
+// GNU tar can come first on PATH and mistakes `C:` for a remote host.
+function unzip(zip, into) {
+  if (process.platform === "win32") {
+    execFileSync("powershell", [
+      "-NoProfile",
+      "-Command",
+      `Expand-Archive -Force -LiteralPath '${zip}' -DestinationPath '${into}'`,
+    ]);
+  } else if (process.platform === "darwin") {
+    execFileSync("tar", ["-xf", zip, "-C", into]);
+  } else {
+    execFileSync("unzip", ["-o", zip, "-d", into]);
+  }
+}
+
 // Deno is the JavaScript runtime yt-dlp needs to solve YouTube's script challenges.
 // Its release archives are named after the same Rust target triple.
 async function fetchDeno() {
@@ -52,8 +78,7 @@ async function fetchDeno() {
   try {
     const zip = join(work, "deno.zip");
     writeFileSync(zip, Buffer.from(await res.arrayBuffer()));
-    // Windows and macOS ship a tar that reads zip files; Linux runners have unzip.
-    execFileSync(process.platform === "linux" ? "unzip" : "tar", process.platform === "linux" ? ["-o", zip, "-d", work] : ["-xf", zip, "-C", work]);
+    unzip(zip, work);
     const dest = join(outDir, `deno-${triple}${ext}`);
     copyFileSync(join(work, `deno${ext}`), dest);
     chmodSync(dest, 0o755);
@@ -65,4 +90,5 @@ async function fetchDeno() {
 
 await fetchYtDlp();
 copyFfmpeg();
+copyFfprobe();
 await fetchDeno();

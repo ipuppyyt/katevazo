@@ -29,6 +29,8 @@ pub struct Settings {
     pub max_retries: u32,
     /// Proxy for all traffic, e.g. `socks5://127.0.0.1:1080`; empty means none.
     pub proxy: String,
+    /// What to do with sponsor and self-promotion segments: "off", "mark" or "remove".
+    pub sponsorblock: String,
     /// Browser whose cookies sign yt-dlp in (see `COOKIE_BROWSERS`); empty means none.
     pub cookies_from_browser: String,
 }
@@ -68,6 +70,7 @@ impl Default for Settings {
             speed_limit_kbps: None,
             max_retries: 3,
             proxy: String::new(),
+            sponsorblock: "off".into(),
             cookies_from_browser: String::new(),
         }
     }
@@ -101,6 +104,9 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     crate::template::render(&settings.filename_template)?;
     if !(1..=MAX_CONCURRENT).contains(&settings.max_concurrent) {
         return Err(format!("simultaneous downloads must be 1 to {MAX_CONCURRENT}"));
+    }
+    if !matches!(settings.sponsorblock.as_str(), "off" | "mark" | "remove") {
+        return Err(format!("unknown SponsorBlock mode: {}", settings.sponsorblock));
     }
     check_proxy(&settings.proxy)?;
     if !settings.cookies_from_browser.is_empty()

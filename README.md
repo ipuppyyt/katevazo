@@ -56,7 +56,7 @@ is tagged. Until then, [build it from source](#build-from-source).
 git clone https://github.com/ipuppyyt/katevazo.git
 cd katevazo
 npm install
-npm run sidecars   # downloads yt-dlp, ffmpeg and Deno for your platform
+npm run sidecars   # downloads yt-dlp, ffmpeg, ffprobe and Deno for your platform
 npm run tauri dev
 ```
 

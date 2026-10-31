@@ -11,11 +11,12 @@ These are run as separate programs (Tauri "sidecars"); Katevazo does not link ag
 | Program | Used for | License | Source |
 | --- | --- | --- | --- |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Extracting and downloading media | The Unlicense | https://github.com/yt-dlp/yt-dlp |
+| [FFprobe](https://ffmpeg.org/ffprobe.html) | Reading a video's duration before sponsor segments are cut out | GPL-3.0-or-later (the build supplied by [`ffprobe-static`](https://github.com/joshwnj/ffprobe-static)) | https://ffmpeg.org/download.html |
 | [Deno](https://deno.com) | JavaScript runtime that yt-dlp uses to solve YouTube's script challenges | MIT | https://github.com/denoland/deno |
 | [FFmpeg](https://ffmpeg.org) | Merging video and audio, converting to MP3 | GPL-3.0-or-later (the build supplied by [`ffmpeg-static`](https://github.com/eugeneware/ffmpeg-static)) | https://ffmpeg.org/download.html |
 
-**FFmpeg and the GPL.** The FFmpeg binary that `npm run sidecars` copies from
-`ffmpeg-static` is a GPL-licensed build. It is distributed alongside Katevazo as a
+**FFmpeg and the GPL.** The FFmpeg and FFprobe binaries that `npm run sidecars` copies from
+`ffmpeg-static` and `ffprobe-static` are GPL-licensed builds. They are distributed alongside Katevazo as a
 separate executable, not combined into it. If you redistribute Katevazo installers you
 must comply with the GPL for that binary, including making the corresponding FFmpeg
 source available (see the link above and the `ffmpeg-static` release notes for the exact

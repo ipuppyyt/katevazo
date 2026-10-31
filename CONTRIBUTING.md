@@ -26,7 +26,7 @@ You need Node.js 22+, stable Rust, and the
 git clone https://github.com/<your-username>/katevazo.git
 cd katevazo
 npm install
-npm run sidecars     # fetch yt-dlp + ffmpeg + Deno for your platform into src-tauri/binaries
+npm run sidecars     # fetch yt-dlp + ffmpeg + ffprobe + Deno for your platform into src-tauri/binaries
 npm run tauri dev    # start the app with hot reload
 ```
 

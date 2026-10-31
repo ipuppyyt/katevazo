@@ -134,6 +134,30 @@ impl Codec {
     }
 }
 
+/// What to do with community-submitted sponsor segments.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub enum SponsorBlock {
+    #[default]
+    Off,
+    /// Turn the segments into chapters, so a player can skip them.
+    Mark,
+    /// Cut the segments out of the file.
+    Remove,
+}
+
+impl SponsorBlock {
+    pub fn from_setting(value: &str) -> Self {
+        match value {
+            "mark" => Self::Mark,
+            "remove" => Self::Remove,
+            _ => Self::Off,
+        }
+    }
+}
+
+/// Segments that are not part of the video itself.
+const SPONSOR_CATEGORIES: &str = "sponsor,selfpromo,interaction";
+
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioFormat {
@@ -230,6 +254,9 @@ pub struct Options {
     /// Speed cap in KiB/s from the settings; `None` is unlimited.
     #[serde(skip)]
     pub speed_limit_kbps: Option<u32>,
+    /// From the settings.
+    #[serde(skip)]
+    pub sponsorblock: SponsorBlock,
     /// How often to retry on its own after a network problem, from the settings.
     #[serde(skip)]
     pub max_retries: u32,
@@ -472,6 +499,15 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
             a.push("--embed-subs".into());
         }
     }
+    match options.sponsorblock {
+        SponsorBlock::Off => {}
+        SponsorBlock::Mark => a.extend([
+            "--sponsorblock-mark".into(),
+            SPONSOR_CATEGORIES.into(),
+            "--embed-chapters".into(),
+        ]),
+        SponsorBlock::Remove => a.extend(["--sponsorblock-remove".into(), SPONSOR_CATEGORIES.into()]),
+    }
     if let Some(sec) = options.section.filter(Section::is_valid) {
         // Cut on the exact frames rather than the nearest keyframes; ffmpeg re-encodes the edges.
         a.extend(["--download-sections".into(), sec.arg(), "--force-keyframes-at-cuts".into()]);
@@ -546,6 +582,7 @@ pub async fn start_download(
     options.filename_template = prefs.filename_template.clone();
     options.speed_limit_kbps = prefs.speed_limit_kbps;
     options.max_retries = prefs.max_retries;
+    options.sponsorblock = SponsorBlock::from_setting(&prefs.sponsorblock);
     let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
@@ -953,6 +990,7 @@ mod tests {
             filename_template: String::new(),
             speed_limit_kbps: None,
             max_retries: 0,
+            sponsorblock: SponsorBlock::Off,
             start_at: None,
             dir: None,
             title: None,
@@ -1151,6 +1189,21 @@ mod tests {
     fn retry_delay_grows_then_caps() {
         let secs: Vec<u64> = (1..=6).map(|n| retry_delay(n).as_secs()).collect();
         assert_eq!(secs, [5, 15, 45, 120, 120, 120]);
+    }
+
+    #[test]
+    fn sponsorblock_modes() {
+        let mut o = opts(Kind::Video, None);
+        let args = build_args(&o, "/tmp", None, "u");
+        assert!(!args.iter().any(|a| a.starts_with("--sponsorblock")));
+        o.sponsorblock = SponsorBlock::from_setting("mark");
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--sponsorblock-mark").as_deref(), Some(SPONSOR_CATEGORIES));
+        assert!(args.contains(&"--embed-chapters".to_string()));
+        o.sponsorblock = SponsorBlock::from_setting("remove");
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--sponsorblock-remove").as_deref(), Some(SPONSOR_CATEGORIES));
+        assert_eq!(SponsorBlock::from_setting("nonsense"), SponsorBlock::Off);
     }
 
     #[test]
