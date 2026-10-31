@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-31
+
 ### Added
 
 - Drop a link, or a text file of links, onto the window to add them. Several links open as a batch with one shared format.
@@ -104,7 +106,8 @@ First public release.
 - The progress bar no longer jumps up and down when video and audio are downloaded as
   separate streams, and it stays put across pauses.
 
-[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/ipuppyyt/katevazo/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ipuppyyt/katevazo/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ipuppyyt/katevazo/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/ipuppyyt/katevazo/compare/v0.2.0...v0.2.1
