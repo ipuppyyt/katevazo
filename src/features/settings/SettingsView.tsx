@@ -17,7 +17,7 @@ import {
   type Theme,
 } from "../../lib/api";
 import { useApp } from "../../lib/app";
-import { LANGUAGES, useLang, useT, type Key } from "../../lib/i18n";
+import { LANGUAGES, resolveLanguage, useLang, useT, type Key } from "../../lib/i18n";
 import styles from "./SettingsView.module.scss";
 
 const THEMES = ["system", "light", "dark"] as const;
@@ -191,14 +191,13 @@ export function SettingsView() {
             </div>
             <select
               className={styles.select}
-              value={settings.language}
+              value={resolveLanguage(settings.language)}
               onChange={(e) => {
                 useLang.getState().set(e.currentTarget.value);
                 save({ ...settings, language: e.currentTarget.value });
               }}
               aria-label={t("settings.language")}
             >
-              <option value="">{t("settings.languageSystem")}</option>
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>{l.name}</option>
               ))}

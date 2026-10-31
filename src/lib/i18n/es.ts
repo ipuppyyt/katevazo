@@ -76,7 +76,6 @@ export const es: Partial<Record<Key, string>> = {
 
   "settings.language": "Idioma",
   "settings.languageHint": "El idioma de los menús y los mensajes",
-  "settings.languageSystem": "El mismo del sistema",
   "settings.about": "Acerca de",
   "settings.version": "Katevazo",
 

@@ -26,7 +26,7 @@
 - Download history, a configurable save folder, and light, dark or system appearance
 - One-click yt-dlp updates from inside the app, so downloads keep working when sites change
 - Drag and drop links, a command palette (Ctrl/Cmd+K), a system tray with a Ctrl/Cmd+Shift+D quick-add shortcut, `katevazo://` links and a [browser extension](extension/README.md)
-- English and Spanish interface
+- Interface in English (default), Spanish, French, German, Portuguese, Italian, Japanese and Simplified Chinese
 - A native-feeling Apple-style interface that follows each platform's window conventions
 - Small installers and low memory use, thanks to Tauri (no bundled browser)
 

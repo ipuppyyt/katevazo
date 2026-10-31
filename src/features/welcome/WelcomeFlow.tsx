@@ -6,7 +6,7 @@ import { Switch } from "../../components/Switch";
 import { getSettings, setSettings, type Settings } from "../../lib/api";
 import { useApp } from "../../lib/app";
 import { changesFor, type ChangeGroup } from "../../lib/changelog";
-import { LANGUAGES, useLang, useT } from "../../lib/i18n";
+import { LANGUAGES, resolveLanguage, useLang, useT } from "../../lib/i18n";
 import styles from "./WelcomeFlow.module.scss";
 
 /** Backticks in a changelog entry mark code. */
@@ -126,13 +126,12 @@ export function WelcomeFlow() {
           <label htmlFor="welcome-language">{t("welcome.language")}</label>
           <select
             id="welcome-language"
-            value={settings.language}
+            value={resolveLanguage(settings.language)}
             onChange={(e) => {
               useLang.getState().set(e.currentTarget.value);
               void update({ language: e.currentTarget.value });
             }}
           >
-            <option value="">{t("settings.languageSystem")}</option>
             {LANGUAGES.map((l) => (
               <option key={l.code} value={l.code}>
                 {l.name}

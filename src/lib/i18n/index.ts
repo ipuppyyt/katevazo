@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { en, type Key } from "./en";
+import { de } from "./de";
 import { es } from "./es";
+import { fr } from "./fr";
+import { it } from "./it";
+import { ja } from "./ja";
+import { pt } from "./pt";
+import { zh } from "./zh";
 
 type Catalogue = Partial<Record<Key, string>>;
 
@@ -8,13 +14,18 @@ type Catalogue = Partial<Record<Key, string>>;
 export const LANGUAGES: { code: string; name: string; strings: Catalogue }[] = [
   { code: "en", name: "English", strings: en },
   { code: "es", name: "Español", strings: es },
+  { code: "fr", name: "Français", strings: fr },
+  { code: "de", name: "Deutsch", strings: de },
+  { code: "pt", name: "Português", strings: pt },
+  { code: "it", name: "Italiano", strings: it },
+  { code: "ja", name: "日本語", strings: ja },
+  { code: "zh", name: "简体中文", strings: zh },
 ];
 
-/** The language to use for a setting ("" means follow the system) and a system language. */
-export function resolveLanguage(setting: string, system: string = navigator.language): string {
-  const wanted = setting || system;
-  const base = wanted.toLowerCase().split("-")[0];
-  return LANGUAGES.find((l) => l.code === base)?.code ?? "en";
+/** The language to use for a setting. English is the default, and also what an unknown code falls back to. */
+export function resolveLanguage(setting: string): string {
+  const base = setting.toLowerCase();
+  return (LANGUAGES.find((l) => l.code === base) ?? LANGUAGES.find((l) => l.code === base.split("-")[0]))?.code ?? "en";
 }
 
 type Vars = Record<string, string | number>;

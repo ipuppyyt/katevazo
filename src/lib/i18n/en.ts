@@ -76,7 +76,6 @@ export const en = {
 
   "settings.language": "Language",
   "settings.languageHint": "The language of menus and messages",
-  "settings.languageSystem": "Same as the system",
   "settings.about": "About",
   "settings.version": "Katevazo",
 

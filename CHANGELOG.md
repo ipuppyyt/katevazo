@@ -14,7 +14,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Command palette (Ctrl/Cmd+K) and keyboard shortcuts for switching tabs, focusing the link field and opening Settings.
 - Search and filter History, and download an item again.
 - A welcome screen on first launch and a What's new screen after updates.
-- The interface can be shown in English or Spanish; more languages can be added in `src/lib/i18n`.
+- The interface can be shown in English (the default), Spanish, French, German, Portuguese, Italian, Japanese or Simplified Chinese; more languages can be added in `src/lib/i18n`.
 
 ### Changed
 
