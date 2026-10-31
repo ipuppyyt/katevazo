@@ -1,3 +1,4 @@
+mod archive;
 mod download;
 mod files;
 mod history;
@@ -26,6 +27,8 @@ pub fn run() {
             files::open_file,
             files::reveal_file,
             ytdlp::update_ytdlp,
+            archive::archive_size,
+            archive::clear_archive,
             download::start_download,
             download::pause_download,
             download::resume_download,

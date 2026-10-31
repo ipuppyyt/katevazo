@@ -257,6 +257,9 @@ pub struct Options {
     /// From the settings.
     #[serde(skip)]
     pub sponsorblock: SponsorBlock,
+    /// Archive file of finished videos to skip, when the setting is on.
+    #[serde(skip)]
+    pub archive: Option<String>,
     /// How often to retry on its own after a network problem, from the settings.
     #[serde(skip)]
     pub max_retries: u32,
@@ -499,6 +502,9 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
             a.push("--embed-subs".into());
         }
     }
+    if let Some(archive) = &options.archive {
+        a.extend(["--download-archive".into(), archive.clone()]);
+    }
     match options.sponsorblock {
         SponsorBlock::Off => {}
         SponsorBlock::Mark => a.extend([
@@ -583,6 +589,9 @@ pub async fn start_download(
     options.speed_limit_kbps = prefs.speed_limit_kbps;
     options.max_retries = prefs.max_retries;
     options.sponsorblock = SponsorBlock::from_setting(&prefs.sponsorblock);
+    if prefs.use_archive {
+        options.archive = Some(crate::archive::path(&app)?.to_string_lossy().into_owned());
+    }
     let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
@@ -814,6 +823,15 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
             }
             emit(app, Update::new(id, Status::Paused).with_percent(pct));
         }
+        // yt-dlp is quiet when it prints fields, so a skipped video shows only as a clean
+        // exit that produced no file.
+        Desired::Run if code == Some(0) && file.is_none() && spec.options.archive.is_some() => {
+            // The archive already has this video, so yt-dlp had nothing to do.
+            state.jobs.lock().unwrap().remove(id);
+            let mut u = Update::new(id, Status::Done).with_percent(100.0);
+            u.error = Some("Already downloaded, skipped".into());
+            emit(app, u);
+        }
         Desired::Run if code == Some(0) => {
             state.jobs.lock().unwrap().remove(id);
             let kind = if spec.options.kind == Kind::Audio {
@@ -991,6 +1009,7 @@ mod tests {
             speed_limit_kbps: None,
             max_retries: 0,
             sponsorblock: SponsorBlock::Off,
+            archive: None,
             start_at: None,
             dir: None,
             title: None,
@@ -1204,6 +1223,17 @@ mod tests {
         let args = build_args(&o, "/tmp", None, "u");
         assert_eq!(flag(&args, "--sponsorblock-remove").as_deref(), Some(SPONSOR_CATEGORIES));
         assert_eq!(SponsorBlock::from_setting("nonsense"), SponsorBlock::Off);
+    }
+
+    #[test]
+    fn archive_is_passed_to_yt_dlp() {
+        let mut o = opts(Kind::Video, None);
+        assert!(flag(&build_args(&o, "/tmp", None, "u"), "--download-archive").is_none());
+        o.archive = Some("/data/archive.txt".into());
+        assert_eq!(
+            flag(&build_args(&o, "/tmp", None, "u"), "--download-archive").as_deref(),
+            Some("/data/archive.txt")
+        );
     }
 
     #[test]

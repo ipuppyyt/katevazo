@@ -29,6 +29,8 @@ pub struct Settings {
     pub max_retries: u32,
     /// Proxy for all traffic, e.g. `socks5://127.0.0.1:1080`; empty means none.
     pub proxy: String,
+    /// Skip videos that were downloaded before; see `archive`.
+    pub use_archive: bool,
     /// What to do with sponsor and self-promotion segments: "off", "mark" or "remove".
     pub sponsorblock: String,
     /// Browser whose cookies sign yt-dlp in (see `COOKIE_BROWSERS`); empty means none.
@@ -70,6 +72,7 @@ impl Default for Settings {
             speed_limit_kbps: None,
             max_retries: 3,
             proxy: String::new(),
+            use_archive: false,
             sponsorblock: "off".into(),
             cookies_from_browser: String::new(),
         }

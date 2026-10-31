@@ -4,6 +4,8 @@ import { Segmented } from "../../components/Segmented";
 import { Switch } from "../../components/Switch";
 import {
   applyTheme,
+  archiveSize,
+  clearArchive,
   getSettings,
   previewTemplate,
   setSettings,
@@ -57,6 +59,7 @@ export function SettingsView() {
   const [templateError, setTemplateError] = useState<string | null>(null);
   const [proxy, setProxy] = useState("");
   const [proxyError, setProxyError] = useState<string | null>(null);
+  const [remembered, setRemembered] = useState(0);
 
   useEffect(() => {
     getSettings()
@@ -65,6 +68,7 @@ export function SettingsView() {
         setTemplate(s.filename_template);
         setProxy(s.proxy);
       }).catch((e) => setError(String(e)));
+    archiveSize().then(setRemembered).catch(() => {});
     ytdlpVersion().then(setVersion).catch(() => setVersion("Unavailable"));
   }, []);
 
@@ -112,6 +116,15 @@ export function SettingsView() {
       setProxyError(null);
     } catch (e) {
       setProxyError(String(e));
+    }
+  }
+
+  async function forgetArchive() {
+    try {
+      await clearArchive();
+      setRemembered(0);
+    } catch (e) {
+      setError(String(e));
     }
   }
 
@@ -212,6 +225,26 @@ export function SettingsView() {
                 <option key={k} value={k}>{speedLabel(k)}</option>
               ))}
             </select>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Skip videos already downloaded</span>
+              <small>
+                {remembered > 0
+                  ? `Remembers ${remembered} ${remembered === 1 ? "video" : "videos"}, even if you moved or deleted the files`
+                  : "Remembers each finished video, even if you later move or delete the file"}
+              </small>
+            </div>
+            {remembered > 0 && (
+              <button className={styles.plain} onClick={forgetArchive}>
+                Forget all
+              </button>
+            )}
+            <Switch
+              label="Skip videos already downloaded"
+              checked={settings.use_archive}
+              onChange={(use_archive) => save({ ...settings, use_archive })}
+            />
           </div>
           <div className={styles.row}>
             <div className={styles.label}>

@@ -22,7 +22,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [x] Scheduled downloads and automatic retry with backoff
 - [x] Proxy support and sign-in with browser cookies
 - [x] SponsorBlock: skip or mark sponsor segments
-- [ ] Archive file so repeat downloads are skipped
+- [x] Archive file so repeat downloads are skipped
 - [ ] Subscriptions: auto-download new uploads from a channel or playlist
 
 ## Beyond YouTube

@@ -124,6 +124,8 @@ export interface Settings {
   max_retries: number;
   /** e.g. socks5://127.0.0.1:1080; empty for none. */
   proxy: string;
+  /** Skip videos that were downloaded before. */
+  use_archive: boolean;
   /** What to do with sponsor segments. */
   sponsorblock: "off" | "mark" | "remove";
   /** Browser to read cookies from, or empty. */
@@ -199,6 +201,10 @@ export function formatEta(seconds: number): string {
   const m = Math.floor(seconds / 60);
   return m < 60 ? `${m}m ${seconds % 60}s` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
+
+/** How many videos the download archive remembers. */
+export const archiveSize = () => invoke<number>("archive_size");
+export const clearArchive = () => invoke<void>("clear_archive");
 
 export const ytdlpVersion = () => invoke<string>("ytdlp_version");
 export const updateYtdlp = () => invoke<string>("update_ytdlp");
