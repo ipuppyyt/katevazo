@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Windows installer: the page title and subtitle now start right after the logo instead of leaving a wide gap.
+
 ## [0.2.1] - 2026-10-30
 
 ### Changed
