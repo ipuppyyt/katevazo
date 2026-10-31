@@ -21,6 +21,14 @@ const THEMES = [
   { value: "dark", label: "Dark" },
 ] as const;
 
+const CONCURRENT = [1, 2, 3, 4, 5, 6, 8];
+
+// KiB/s; shown as KB/s or MB/s.
+const SPEED_LIMITS = [256, 512, 1024, 2048, 5120, 10240];
+
+const speedLabel = (kbps: number) =>
+  kbps >= 1024 ? `${kbps / 1024} MB/s` : `${kbps} KB/s`;
+
 export function SettingsView() {
   const [settings, setLocal] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -128,6 +136,49 @@ export function SettingsView() {
               options={THEMES}
               onChange={(theme: Theme) => save({ ...settings, theme })}
             />
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2 className={styles.heading}>Downloads</h2>
+        <div className={styles.group}>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Simultaneous downloads</span>
+              <small>More at once is faster overall; the rest wait in the queue</small>
+            </div>
+            <select
+              className={styles.select}
+              value={settings.max_concurrent}
+              onChange={(e) => save({ ...settings, max_concurrent: Number(e.currentTarget.value) })}
+              aria-label="Simultaneous downloads"
+            >
+              {CONCURRENT.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Speed limit</span>
+              <small>Applies to each download, and to downloads started after you change it</small>
+            </div>
+            <select
+              className={styles.select}
+              value={settings.speed_limit_kbps ?? ""}
+              onChange={(e) =>
+                save({
+                  ...settings,
+                  speed_limit_kbps: e.currentTarget.value ? Number(e.currentTarget.value) : null,
+                })
+              }
+              aria-label="Speed limit"
+            >
+              <option value="">Unlimited</option>
+              {SPEED_LIMITS.map((k) => (
+                <option key={k} value={k}>{speedLabel(k)}</option>
+              ))}
+            </select>
           </div>
         </div>
       </section>

@@ -103,3 +103,8 @@
   max-width: 640px;
   margin: 0 auto;
 }
+
+.select {
+  @include select-field;
+  flex-shrink: 0;
+}

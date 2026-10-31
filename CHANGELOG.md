@@ -9,6 +9,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Trim a video: download only the part between a start and end time.
+- Settings for how many downloads run at once and a speed limit for each.
 
 ### Fixed
 

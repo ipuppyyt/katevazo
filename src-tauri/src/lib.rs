@@ -15,6 +15,10 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
         .manage(download::DownloadState::default())
+        .setup(|app| {
+            download::set_concurrency(app.handle(), settings::load(app.handle()).max_concurrent as usize);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             ytdlp::ytdlp_version,
             ytdlp::fetch_metadata,

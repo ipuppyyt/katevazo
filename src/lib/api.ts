@@ -117,6 +117,9 @@ export interface Settings {
   filename_template: string;
   watch_clipboard: boolean;
   notifications: boolean;
+  max_concurrent: number;
+  /** KiB/s per download; null means unlimited. */
+  speed_limit_kbps: number | null;
 }
 
 /** Fields usable in a filename template, with an example value for the live preview. */

@@ -21,7 +21,13 @@ pub struct Settings {
     pub watch_clipboard: bool,
     /// Show a desktop notification when a download finishes or fails in the background.
     pub notifications: bool,
+    /// How many downloads run at once; the rest wait in the queue.
+    pub max_concurrent: u32,
+    /// Cap on each download's speed in KiB/s; `None` means unlimited.
+    pub speed_limit_kbps: Option<u32>,
 }
+
+pub const MAX_CONCURRENT: u32 = 8;
 
 impl Default for Settings {
     fn default() -> Self {
@@ -33,6 +39,8 @@ impl Default for Settings {
             filename_template: crate::template::DEFAULT.into(),
             watch_clipboard: true,
             notifications: true,
+            max_concurrent: 3,
+            speed_limit_kbps: None,
         }
     }
 }
@@ -63,8 +71,16 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
         return Err(format!("unknown theme: {}", settings.theme));
     }
     crate::template::render(&settings.filename_template)?;
+    if !(1..=MAX_CONCURRENT).contains(&settings.max_concurrent) {
+        return Err(format!("simultaneous downloads must be 1 to {MAX_CONCURRENT}"));
+    }
+    if settings.speed_limit_kbps == Some(0) {
+        return Err("the speed limit must be above zero; turn it off instead".into());
+    }
     let json = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
-    fs::write(path(&app)?, json).map_err(|e| e.to_string())
+    fs::write(path(&app)?, json).map_err(|e| e.to_string())?;
+    crate::download::set_concurrency(&app, settings.max_concurrent as usize);
+    Ok(())
 }
 
 #[cfg(test)]
@@ -79,5 +95,6 @@ mod tests {
         assert!(s.embed_metadata && s.embed_thumbnail);
         assert_eq!(s.filename_template, "{title} [{id}]");
         assert!(s.watch_clipboard);
+        assert_eq!((s.max_concurrent, s.speed_limit_kbps), (3, None));
     }
 }

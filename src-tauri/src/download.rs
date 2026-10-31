@@ -18,11 +18,14 @@ use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tokio::sync::Semaphore;
 
-const MAX_CONCURRENT: usize = 3;
+
+const DEFAULT_CONCURRENT: usize = 3;
 
 pub struct DownloadState {
     next_id: AtomicU64,
-    slots: Semaphore,
+    slots: Arc<Semaphore>,
+    /// How many slots there are meant to be; `slots` is brought in line with it.
+    slot_target: Mutex<usize>,
     jobs: Mutex<HashMap<String, Entry>>,
 }
 
@@ -30,9 +33,28 @@ impl Default for DownloadState {
     fn default() -> Self {
         Self {
             next_id: AtomicU64::new(1),
-            slots: Semaphore::new(MAX_CONCURRENT),
+            slots: Arc::new(Semaphore::new(DEFAULT_CONCURRENT)),
+            slot_target: Mutex::new(DEFAULT_CONCURRENT),
             jobs: Mutex::default(),
         }
+    }
+}
+
+/// Changes how many downloads may run at once. Raising it takes effect immediately;
+/// lowering it lets running downloads finish and then stops handing out the extra slots.
+pub fn set_concurrency(app: &AppHandle, wanted: usize) {
+    let state = app.state::<DownloadState>();
+    let mut target = state.slot_target.lock().unwrap();
+    let current = std::mem::replace(&mut *target, wanted);
+    if wanted > current {
+        state.slots.add_permits(wanted - current);
+    } else if wanted < current {
+        let (slots, surplus) = (state.slots.clone(), (current - wanted) as u32);
+        tauri::async_runtime::spawn(async move {
+            if let Ok(permits) = slots.acquire_many(surplus).await {
+                permits.forget();
+            }
+        });
     }
 }
 
@@ -202,6 +224,9 @@ pub struct Options {
     /// The user's filename template; empty or invalid means the default.
     #[serde(skip)]
     pub filename_template: String,
+    /// Speed cap in KiB/s from the settings; `None` is unlimited.
+    #[serde(skip)]
+    pub speed_limit_kbps: Option<u32>,
     /// Overrides the default Downloads folder.
     pub dir: Option<String>,
     /// Display title recorded in history.
@@ -391,6 +416,9 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
         .or_else(|_| template::render(template::DEFAULT))
         .expect("the default template is valid");
     a.push(format!("{out_dir}/{name}.%(ext)s"));
+    if let Some(k) = options.speed_limit_kbps.filter(|k| *k > 0) {
+        a.extend(["--limit-rate".into(), format!("{k}K")]);
+    }
     if let Some(f) = ffmpeg {
         a.push("--ffmpeg-location".into());
         a.push(f.into());
@@ -507,6 +535,7 @@ pub async fn start_download(
     options.embed_metadata = prefs.embed_metadata;
     options.embed_thumbnail = prefs.embed_thumbnail;
     options.filename_template = prefs.filename_template.clone();
+    options.speed_limit_kbps = prefs.speed_limit_kbps;
     let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
@@ -804,6 +833,7 @@ mod tests {
             embed_metadata: false,
             embed_thumbnail: false,
             filename_template: String::new(),
+            speed_limit_kbps: None,
             dir: None,
             title: None,
         }
@@ -985,6 +1015,14 @@ mod tests {
         assert!(is_subtitle_file("C:/x/Title [id].en.vtt"));
         assert!(is_subtitle_file("Title.en.vtt.part"));
         assert!(!is_subtitle_file("Title [id].f137.mp4"));
+    }
+
+    #[test]
+    fn limits_the_speed() {
+        let mut o = opts(Kind::Video, None);
+        assert!(flag(&build_args(&o, "/tmp", None, "u"), "--limit-rate").is_none());
+        o.speed_limit_kbps = Some(2048);
+        assert_eq!(flag(&build_args(&o, "/tmp", None, "u"), "--limit-rate").as_deref(), Some("2048K"));
     }
 
     #[test]
