@@ -173,6 +173,19 @@ fn deno_path() -> Option<PathBuf> {
     p.exists().then_some(p)
 }
 
+/// Proxy and sign-in options from the settings, shared by every yt-dlp call.
+fn network_args(prefs: &crate::settings::Settings) -> Vec<String> {
+    let mut a = Vec::new();
+    let proxy = prefs.proxy.trim();
+    if !proxy.is_empty() {
+        a.extend(["--proxy".to_string(), proxy.to_string()]);
+    }
+    if !prefs.cookies_from_browser.is_empty() {
+        a.extend(["--cookies-from-browser".to_string(), prefs.cookies_from_browser.clone()]);
+    }
+    a
+}
+
 /// Prefers the updated copy over the bundled sidecar when one exists.
 pub fn command(app: &AppHandle) -> Result<Command, String> {
     let managed = managed_path(app)?;
@@ -181,10 +194,11 @@ pub fn command(app: &AppHandle) -> Result<Command, String> {
     } else {
         app.shell().sidecar("yt-dlp").map_err(|e| e.to_string())?
     };
-    Ok(match deno_path() {
+    let cmd = match deno_path() {
         Some(deno) => cmd.args(["--js-runtimes", &format!("deno:{}", deno.display())]),
         None => cmd,
-    })
+    };
+    Ok(cmd.args(network_args(&crate::settings::load(app))))
 }
 
 async fn run(app: &AppHandle, args: &[&str]) -> Result<String, String> {
@@ -272,6 +286,18 @@ pub async fn fetch_playlist(app: AppHandle, url: String) -> Result<Playlist, Str
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn network_args_follow_the_settings() {
+        let mut prefs = crate::settings::Settings::default();
+        assert!(network_args(&prefs).is_empty());
+        prefs.proxy = " socks5://127.0.0.1:1080 ".into();
+        prefs.cookies_from_browser = "firefox".into();
+        assert_eq!(
+            network_args(&prefs),
+            ["--proxy", "socks5://127.0.0.1:1080", "--cookies-from-browser", "firefox"]
+        );
+    }
 
     #[test]
     fn parses_playlist_and_skips_unavailable_videos() {

@@ -122,6 +122,10 @@ export interface Settings {
   max_concurrent: number;
   /** Automatic retries after a network problem. */
   max_retries: number;
+  /** e.g. socks5://127.0.0.1:1080; empty for none. */
+  proxy: string;
+  /** Browser to read cookies from, or empty. */
+  cookies_from_browser: string;
   /** KiB/s per download; null means unlimited. */
   speed_limit_kbps: number | null;
 }

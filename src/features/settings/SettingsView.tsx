@@ -31,6 +31,17 @@ const SPEED_LIMITS = [256, 512, 1024, 2048, 5120, 10240];
 const speedLabel = (kbps: number) =>
   kbps >= 1024 ? `${kbps / 1024} MB/s` : `${kbps} KB/s`;
 
+const BROWSERS = [
+  { value: "firefox", label: "Firefox" },
+  { value: "chrome", label: "Chrome" },
+  { value: "edge", label: "Edge" },
+  { value: "brave", label: "Brave" },
+  { value: "chromium", label: "Chromium" },
+  { value: "opera", label: "Opera" },
+  { value: "vivaldi", label: "Vivaldi" },
+  { value: "safari", label: "Safari" },
+];
+
 export function SettingsView() {
   const [settings, setLocal] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +49,15 @@ export function SettingsView() {
   const [updating, setUpdating] = useState(false);
   const [template, setTemplate] = useState("");
   const [templateError, setTemplateError] = useState<string | null>(null);
+  const [proxy, setProxy] = useState("");
+  const [proxyError, setProxyError] = useState<string | null>(null);
 
   useEffect(() => {
     getSettings()
       .then((s) => {
         setLocal(s);
         setTemplate(s.filename_template);
+        setProxy(s.proxy);
       }).catch((e) => setError(String(e)));
     ytdlpVersion().then(setVersion).catch(() => setVersion("Unavailable"));
   }, []);
@@ -81,6 +95,17 @@ export function SettingsView() {
       setTemplateError(null);
     } catch (e) {
       setTemplateError(String(e));
+    }
+  }
+
+  async function commitProxy(value: string) {
+    if (value.trim() === settings?.proxy) return setProxyError(null);
+    try {
+      await setSettings({ ...settings!, proxy: value.trim() });
+      setLocal({ ...settings!, proxy: value.trim() });
+      setProxyError(null);
+    } catch (e) {
+      setProxyError(String(e));
     }
   }
 
@@ -195,6 +220,48 @@ export function SettingsView() {
             >
               {RETRIES.map((n) => (
                 <option key={n} value={n}>{n === 0 ? "Never" : `Up to ${n}×`}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2 className={styles.heading}>Network</h2>
+        <div className={styles.group}>
+          <div className={styles.stack}>
+            <div className={styles.label}>
+              <span>Proxy</span>
+              <small>Send all traffic through a proxy, for example socks5://127.0.0.1:1080. Leave empty for none.</small>
+            </div>
+            <input
+              className={styles.input}
+              value={proxy}
+              onChange={(e) => setProxy(e.currentTarget.value)}
+              onBlur={() => commitProxy(proxy)}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+              placeholder="http://host:port"
+              spellCheck={false}
+              aria-label="Proxy"
+            />
+            {proxyError && <p className={styles.error}>{proxyError}</p>}
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Sign in with browser cookies</span>
+              <small>
+                For age-restricted or members-only videos, use the account you are signed in to in
+                this browser. Firefox is the most reliable; close Chrome and Edge first.
+              </small>
+            </div>
+            <select
+              className={styles.select}
+              value={settings.cookies_from_browser}
+              onChange={(e) => save({ ...settings, cookies_from_browser: e.currentTarget.value })}
+              aria-label="Browser for cookies"
+            >
+              <option value="">Don't sign in</option>
+              {BROWSERS.map((b) => (
+                <option key={b.value} value={b.value}>{b.label}</option>
               ))}
             </select>
           </div>

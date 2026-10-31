@@ -27,10 +27,32 @@ pub struct Settings {
     pub speed_limit_kbps: Option<u32>,
     /// How many times a download is retried on its own after a network problem.
     pub max_retries: u32,
+    /// Proxy for all traffic, e.g. `socks5://127.0.0.1:1080`; empty means none.
+    pub proxy: String,
+    /// Browser whose cookies sign yt-dlp in (see `COOKIE_BROWSERS`); empty means none.
+    pub cookies_from_browser: String,
 }
 
 pub const MAX_CONCURRENT: u32 = 8;
 pub const MAX_RETRIES: u32 = 10;
+
+/// Browsers yt-dlp can read cookies from.
+pub const COOKIE_BROWSERS: &[&str] =
+    &["brave", "chrome", "chromium", "edge", "firefox", "opera", "safari", "vivaldi"];
+
+const PROXY_SCHEMES: &[&str] = &["http://", "https://", "socks4://", "socks4a://", "socks5://", "socks5h://"];
+
+/// A proxy address must name its protocol, so it can never be read as a command-line flag.
+fn check_proxy(proxy: &str) -> Result<(), String> {
+    let p = proxy.trim();
+    if p.is_empty() {
+        return Ok(());
+    }
+    if p.contains(char::is_whitespace) || !PROXY_SCHEMES.iter().any(|s| p.starts_with(s)) {
+        return Err("a proxy looks like http://host:port or socks5://host:port".into());
+    }
+    Ok(())
+}
 
 impl Default for Settings {
     fn default() -> Self {
@@ -45,6 +67,8 @@ impl Default for Settings {
             max_concurrent: 3,
             speed_limit_kbps: None,
             max_retries: 3,
+            proxy: String::new(),
+            cookies_from_browser: String::new(),
         }
     }
 }
@@ -78,6 +102,12 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     if !(1..=MAX_CONCURRENT).contains(&settings.max_concurrent) {
         return Err(format!("simultaneous downloads must be 1 to {MAX_CONCURRENT}"));
     }
+    check_proxy(&settings.proxy)?;
+    if !settings.cookies_from_browser.is_empty()
+        && !COOKIE_BROWSERS.contains(&settings.cookies_from_browser.as_str())
+    {
+        return Err(format!("unknown browser: {}", settings.cookies_from_browser));
+    }
     if settings.max_retries > MAX_RETRIES {
         return Err(format!("retries must be at most {MAX_RETRIES}"));
     }
@@ -103,5 +133,16 @@ mod tests {
         assert_eq!(s.filename_template, "{title} [{id}]");
         assert!(s.watch_clipboard);
         assert_eq!((s.max_concurrent, s.speed_limit_kbps, s.max_retries), (3, None, 3));
+        assert!(s.proxy.is_empty() && s.cookies_from_browser.is_empty());
+    }
+
+    #[test]
+    fn proxies_need_a_protocol() {
+        for ok in ["", "http://127.0.0.1:8080", "socks5://user:pw@host:1080", " socks5h://h:1 "] {
+            assert!(check_proxy(ok).is_ok(), "{ok:?} should be accepted");
+        }
+        for bad in ["127.0.0.1:8080", "--exec calc", "ftp://h", "http://a b"] {
+            assert!(check_proxy(bad).is_err(), "{bad:?} should be rejected");
+        }
     }
 }

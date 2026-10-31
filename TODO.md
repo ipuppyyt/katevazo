@@ -20,7 +20,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [x] Trim a section: download only a start and end time
 - [x] Speed limit and a setting for simultaneous downloads
 - [x] Scheduled downloads and automatic retry with backoff
-- [ ] Proxy support and sign-in with browser cookies
+- [x] Proxy support and sign-in with browser cookies
 - [ ] SponsorBlock: skip or mark sponsor segments
 - [ ] Archive file so repeat downloads are skipped
 - [ ] Subscriptions: auto-download new uploads from a channel or playlist
