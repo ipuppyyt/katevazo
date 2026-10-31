@@ -5,6 +5,7 @@ import { CommandPalette } from "./features/palette/CommandPalette";
 import { ShortcutsHelp } from "./features/palette/ShortcutsHelp";
 import { useShortcuts } from "./features/palette/useShortcuts";
 import { useLang, useT } from "./lib/i18n";
+import { WelcomeFlow } from "./features/welcome/WelcomeFlow";
 import { DropOverlay } from "./features/add/DropOverlay";
 import { useApp, type Tab } from "./lib/app";
 import styles from "./App.module.scss";
@@ -66,6 +67,7 @@ function App() {
       <DropOverlay />
       <CommandPalette />
       <ShortcutsHelp />
+      <WelcomeFlow />
       <Toast />
       <aside className={styles.sidebar}>
         {/* Draggable strip: native traffic lights overlay it on macOS; elsewhere it shows the app name. */}

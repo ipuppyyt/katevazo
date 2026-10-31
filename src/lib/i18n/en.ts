@@ -55,6 +55,29 @@ export const en = {
   "history.audio": "Audio",
   "history.noMatches": "Nothing matches your search.",
   "history.again": "Download again",
+
+  "welcome.title": "Welcome to Katevazo",
+  "welcome.intro": "Download videos and music from YouTube and many other sites. Three things to know:",
+  "welcome.step1": "Paste a link into the bar at the top, or drag one onto the window, and press Fetch.",
+  "welcome.step2": "Pick a quality or audio format, then press Download. You can pause, resume and retry any download.",
+  "welcome.step3": "Subscribe to a channel or playlist and new videos download on their own.",
+  "welcome.folder": "Save to",
+  "welcome.defaultFolder": "Your Downloads folder",
+  "welcome.choose": "Choose…",
+  "welcome.clipboard": "Offer to download links I copy",
+  "welcome.language": "Language",
+  "welcome.start": "Get Started",
+
+  "whatsnew.title": "What's new in Katevazo {version}",
+  "whatsnew.none": "There is nothing to report for this version.",
+  "whatsnew.continue": "Continue",
+  "whatsnew.open": "What's new",
+
+  "settings.language": "Language",
+  "settings.languageHint": "The language of menus and messages",
+  "settings.languageSystem": "Same as the system",
+  "settings.about": "About",
+  "settings.version": "Katevazo",
 } as const;
 
 export type Key = keyof typeof en;

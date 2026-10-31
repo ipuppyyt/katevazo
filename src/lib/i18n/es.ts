@@ -55,4 +55,27 @@ export const es: Partial<Record<Key, string>> = {
   "history.audio": "Audio",
   "history.noMatches": "Nada coincide con tu búsqueda.",
   "history.again": "Descargar de nuevo",
+
+  "welcome.title": "Te damos la bienvenida a Katevazo",
+  "welcome.intro": "Descarga vídeos y música de YouTube y de muchos otros sitios. Tres cosas que conviene saber:",
+  "welcome.step1": "Pega un enlace en la barra de arriba, o arrástralo a la ventana, y pulsa Buscar.",
+  "welcome.step2": "Elige una calidad o un formato de audio y pulsa Descargar. Puedes pausar, reanudar y reintentar cualquier descarga.",
+  "welcome.step3": "Suscríbete a un canal o a una lista y los vídeos nuevos se descargan solos.",
+  "welcome.folder": "Guardar en",
+  "welcome.defaultFolder": "Tu carpeta Descargas",
+  "welcome.choose": "Elegir…",
+  "welcome.clipboard": "Ofrecerme descargar los enlaces que copio",
+  "welcome.language": "Idioma",
+  "welcome.start": "Empezar",
+
+  "whatsnew.title": "Novedades de Katevazo {version}",
+  "whatsnew.none": "No hay nada que contar sobre esta versión.",
+  "whatsnew.continue": "Continuar",
+  "whatsnew.open": "Novedades",
+
+  "settings.language": "Idioma",
+  "settings.languageHint": "El idioma de los menús y los mensajes",
+  "settings.languageSystem": "El mismo del sistema",
+  "settings.about": "Acerca de",
+  "settings.version": "Katevazo",
 };

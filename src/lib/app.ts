@@ -17,6 +17,9 @@ interface AppState {
   shortcuts: boolean;
   setPalette: (open: boolean) => void;
   setShortcuts: (open: boolean) => void;
+  /** The welcome screen or the What's new screen, when one is showing. */
+  welcome: "welcome" | "whatsnew" | null;
+  setWelcome: (mode: "welcome" | "whatsnew" | null) => void;
 }
 
 let counter = 0;
@@ -35,4 +38,6 @@ export const useApp = create<AppState>((set, get) => ({
   shortcuts: false,
   setPalette: (palette) => set({ palette, shortcuts: false }),
   setShortcuts: (shortcuts) => set({ shortcuts, palette: false }),
+  welcome: null,
+  setWelcome: (welcome) => set({ welcome }),
 }));

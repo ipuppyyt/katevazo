@@ -1,0 +1,88 @@
+@use "../../styles/mixins" as *;
+
+.title {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.3em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 0.5px var(--separator);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+
+  & + & {
+    border-top: 0.5px solid var(--separator);
+  }
+
+  > :first-child {
+    flex-shrink: 0;
+  }
+
+  select {
+    @include select-field;
+    margin-left: auto;
+  }
+
+  > :last-child:is(label, div, button) {
+    margin-left: auto;
+  }
+}
+
+.path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+.plain {
+  @include button-tinted;
+}
+
+.primary {
+  @include button-filled;
+  align-self: flex-end;
+}
+
+.group {
+  h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--space-1);
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.2em;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}
