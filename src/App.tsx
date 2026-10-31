@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 import { DropOverlay } from "./features/add/DropOverlay";
 import { useApp, type Tab } from "./lib/app";
@@ -11,7 +12,7 @@ import { listenForUpdates, useQueue } from "./features/queue/store";
 import { ConvertView } from "./features/convert/ConvertView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { SubscriptionsView } from "./features/subscriptions/SubscriptionsView";
-import { applyTheme, getSettings } from "./lib/api";
+import { applyTheme, getSettings, takePendingLinks } from "./lib/api";
 
 const NAV: { id: Tab; icon: IconName }[] = [
   { id: "Downloads", icon: "save" },
@@ -36,6 +37,15 @@ function App() {
     document.documentElement.dataset.platform = platform;
     const unlisten = listenForUpdates();
     getSettings().then((s) => applyTheme(s.theme)).catch(() => {});
+    return () => void unlisten.then((fn) => fn());
+  }, []);
+
+  // Links sent by the browser extension or a katevazo:// address, including ones that
+  // arrived before the window was ready.
+  useEffect(() => {
+    const pick = () => takePendingLinks().then((links) => useApp.getState().openLinks(links)).catch(() => {});
+    void pick();
+    const unlisten = listen("app://links", pick);
     return () => void unlisten.then((fn) => fn());
   }, []);
 

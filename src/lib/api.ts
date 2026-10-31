@@ -194,6 +194,9 @@ export const removeSubscription = (id: string) => invoke<void>("remove_subscript
 /** Looks for new uploads now; resolves to how many videos were queued. */
 export const checkSubscriptions = () => invoke<number>("check_subscriptions");
 
+/** Links that arrived from outside the window (browser extension, katevazo:// addresses). */
+export const takePendingLinks = () => invoke<string[]>("take_pending_links");
+
 /** Opens a finished download in its default app. */
 export const openFile = (path: string) => invoke<void>("open_file", { path });
 
