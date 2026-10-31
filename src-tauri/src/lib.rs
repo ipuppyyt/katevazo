@@ -1,4 +1,5 @@
 mod archive;
+mod convert;
 mod download;
 mod files;
 mod history;
@@ -38,7 +39,10 @@ pub fn run() {
             download::start_download,
             download::pause_download,
             download::resume_download,
+            download::stop_recording,
             download::cancel_download,
+            convert::convert_file,
+            convert::cancel_convert,
             settings::get_settings,
             settings::set_settings,
             history::list_history,

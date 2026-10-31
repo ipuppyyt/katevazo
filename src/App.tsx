@@ -6,6 +6,7 @@ import { WindowControls, detectPlatform } from "./components/WindowControls";
 import { DownloadsView } from "./features/add/DownloadsView";
 import { HistoryView } from "./features/history/HistoryView";
 import { listenForUpdates, useQueue } from "./features/queue/store";
+import { ConvertView } from "./features/convert/ConvertView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { SubscriptionsView } from "./features/subscriptions/SubscriptionsView";
 import { applyTheme, getSettings } from "./lib/api";
@@ -14,9 +15,10 @@ const NAV: { id: Tab; icon: IconName }[] = [
   { id: "Downloads", icon: "save" },
   { id: "History", icon: "history" },
   { id: "Subscriptions", icon: "rss" },
+  { id: "Convert", icon: "convert" },
   { id: "Settings", icon: "gear" },
 ];
-type Tab = "Downloads" | "History" | "Subscriptions" | "Settings";
+type Tab = "Downloads" | "History" | "Subscriptions" | "Convert" | "Settings";
 
 const platform = detectPlatform();
 const isMac = platform === "mac";
@@ -80,6 +82,7 @@ function App() {
             </div>
             {tab === "History" && <HistoryView />}
             {tab === "Subscriptions" && <SubscriptionsView />}
+            {tab === "Convert" && <ConvertView />}
             {tab === "Settings" && <SettingsView />}
           </main>
         </ToolbarSlotContext.Provider>

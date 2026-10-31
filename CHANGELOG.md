@@ -6,6 +6,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- A badge shows which site a link is from, with a note where a site needs something extra (Vimeo, Instagram and X usually want you signed in). Links from Vimeo, SoundCloud, X, Instagram, TikTok, Twitch, Facebook, Reddit and Dailymotion are now offered when copied, and SoundCloud sets can be listed like playlists.
+- Record live streams: press Record on a live video and Stop when you are done. Streams and premieres that have not started yet are waited for and recorded.
+- Convert tab: change video or audio files already on your computer to MP4, MKV, WebM, MP3, M4A, Opus, FLAC or WAV with the bundled ffmpeg. The originals are never changed.
+
 ## [0.3.0] - 2026-10-31
 
 ### Added

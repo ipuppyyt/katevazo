@@ -21,6 +21,15 @@ pub struct Metadata {
     pub thumbnail: Option<String>,
     pub duration: Option<f64>,
     pub uploader: Option<String>,
+    /// yt-dlp's name for the site, such as "Vimeo" or "Youtube".
+    #[serde(default)]
+    pub extractor_key: Option<String>,
+    /// "is_live", "is_upcoming", "was_live", "not_live"; absent on most sites.
+    #[serde(default)]
+    pub live_status: Option<String>,
+    /// When an upcoming stream or premiere starts, in seconds since the epoch.
+    #[serde(default)]
+    pub release_timestamp: Option<f64>,
     #[serde(default)]
     pub formats: Vec<Format>,
     /// Number of entries when the URL is a playlist.
@@ -357,6 +366,16 @@ mod tests {
         let m = parse_metadata(json).unwrap();
         assert_eq!(m.subtitle_langs, ["en", "fr"]);
         assert_eq!(m.auto_caption_langs, ["de-orig"]);
+    }
+
+    #[test]
+    fn reads_live_details() {
+        let json = r#"{"id":"a","title":"T","extractor_key":"Youtube","live_status":"is_upcoming",
+            "release_timestamp":1792681043}"#;
+        let m = parse_metadata(json).unwrap();
+        assert_eq!(m.live_status.as_deref(), Some("is_upcoming"));
+        assert_eq!(m.release_timestamp, Some(1792681043.0));
+        assert_eq!(m.extractor_key.as_deref(), Some("Youtube"));
     }
 
     #[test]

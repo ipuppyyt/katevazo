@@ -5,7 +5,7 @@
 //! yt-dlp continues from the `.part` file it left on disk.
 use std::{
     collections::HashMap,
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
     sync::{
         Arc, Mutex,
@@ -64,6 +64,8 @@ enum Desired {
     Run,
     Pause,
     Cancel,
+    /// End a live recording and keep what was captured.
+    Stop,
 }
 
 struct Spec {
@@ -243,6 +245,9 @@ pub struct Options {
     /// Download only this part of the video.
     #[serde(default)]
     pub section: Option<Section>,
+    /// Record a live stream, or wait for one that has not started, instead of downloading a video.
+    #[serde(default)]
+    pub live: bool,
     /// Both come from the user's settings rather than from the caller.
     #[serde(skip)]
     pub embed_metadata: bool,
@@ -326,6 +331,7 @@ impl Update {
 const PROGRESS_PREFIX: &str = "PROGRESS|";
 const STREAMS_PREFIX: &str = "STREAMS|";
 const FILE_PREFIX: &str = "FILE|";
+const RECORDING_PREFIX: &str = "REC|";
 
 struct Progress {
     /// Fraction (0..1) of the *current stream*, when its size is known.
@@ -521,6 +527,17 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
         // Cut on the exact frames rather than the nearest keyframes; ffmpeg re-encodes the edges.
         a.extend(["--download-sections".into(), sec.arg(), "--force-keyframes-at-cuts".into()]);
     }
+    if options.live {
+        a.extend([
+            // An announced stream or premiere: keep checking until it goes live.
+            "--wait-for-video".into(),
+            "30".into(),
+            // MPEG-TS can be read even if the recording is cut off, which is how Stop works.
+            "--hls-use-mpegts".into(),
+            "--print".into(),
+            format!("before_dl:{RECORDING_PREFIX}%(filename)s"),
+        ]);
+    }
     // `--` stops option parsing so the URL can never be read as a flag.
     a.push("--".into());
     a.push(url.into());
@@ -657,7 +674,7 @@ fn spec_if_wanted(app: &AppHandle, id: &str) -> Option<Arc<Spec>> {
             emit(app, Update::new(id, Status::Paused).with_percent(pct));
             None
         }
-        Desired::Cancel => {
+        Desired::Cancel | Desired::Stop => {
             jobs.remove(id);
             drop(jobs);
             emit(app, Update::new(id, Status::Cancelled));
@@ -786,13 +803,14 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
     emit(app, Update::new(id, Status::Downloading).with_percent(pct));
 
     let mut file = None;
+    let mut recording = None;
     let mut last_err = String::new();
     let mut code = None;
     while let Some(event) = rx.recv().await {
         match event {
             CommandEvent::Stdout(bytes) => {
                 for line in String::from_utf8_lossy(&bytes).lines() {
-                    handle_line(app, state, id, line, &mut file);
+                    handle_line(app, state, id, line, &mut file, &mut recording);
                 }
             }
             CommandEvent::Stderr(bytes) => {
@@ -823,6 +841,25 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
         Desired::Cancel => {
             state.jobs.lock().unwrap().remove(id);
             emit(app, Update::new(id, Status::Cancelled));
+        }
+        Desired::Stop => {
+            state.jobs.lock().unwrap().remove(id);
+            let title = spec.options.title.as_deref().unwrap_or(&spec.url);
+            match save_recording(file.or(recording)).await {
+                Ok(path) => {
+                    history::record(app, title, &spec.url, Some(&path), "video");
+                    let mut u = Update::new(id, Status::Done).with_percent(100.0);
+                    u.file = Some(path);
+                    emit(app, u);
+                    notify::download_ended(app, title, None);
+                }
+                Err(message) => {
+                    let mut u = Update::new(id, Status::Error);
+                    u.error = Some(message.clone());
+                    emit(app, u);
+                    notify::download_ended(app, title, Some(&message));
+                }
+            }
         }
         Desired::Pause => {
             if let Some(e) = state.jobs.lock().unwrap().get_mut(id) {
@@ -874,6 +911,39 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
     Outcome::Finished
 }
 
+/// Turns what a stopped recording left on disk into a playable file. yt-dlp was killed
+/// mid-stream, so the capture is still named `<file>.part`; remuxing it fixes the container.
+async fn save_recording(target: Option<String>) -> Result<String, String> {
+    let target = target.ok_or("Nothing was recorded.")?;
+    let part = format!("{target}.part");
+    if !Path::new(&part).exists() {
+        // The file may already be complete if the stream ended just as Stop was pressed.
+        return if Path::new(&target).exists() { Ok(target) } else { Err("Nothing was recorded.".into()) };
+    }
+    let ffmpeg = ffmpeg_path().ok_or("ffmpeg is missing, so the recording could not be saved.")?;
+    let out = target.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut cmd = std::process::Command::new(ffmpeg);
+        cmd.args(["-y", "-loglevel", "error", "-i", &part, "-c", "copy", &out]);
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x0800_0000);
+        }
+        let result = cmd.output().map_err(|e| e.to_string())?;
+        if !result.status.success() {
+            return Err(format!(
+                "Could not save the recording: {}",
+                String::from_utf8_lossy(&result.stderr).trim()
+            ));
+        }
+        let _ = std::fs::remove_file(&part);
+        Ok(out)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Marks the job failed but keeps it, so the UI can offer Retry (resume).
 fn finish_error(app: &AppHandle, state: &DownloadState, id: &str, message: String) {
     let title = state.jobs.lock().unwrap().get_mut(id).map(|e| {
@@ -904,6 +974,7 @@ fn handle_line(
     id: &str,
     line: &str,
     file: &mut Option<String>,
+    recording: &mut Option<String>,
 ) {
     if let Some(p) = parse_progress(line) {
         // A subtitle file is not one of the video or audio streams, and counting it
@@ -932,6 +1003,8 @@ fn handle_line(
         }
     } else if let Some(f) = line.strip_prefix(FILE_PREFIX) {
         *file = Some(f.trim().to_string());
+    } else if let Some(f) = line.strip_prefix(RECORDING_PREFIX) {
+        *recording = Some(f.trim().to_string());
     }
 }
 
@@ -977,6 +1050,26 @@ pub fn resume_download(app: AppHandle, state: State<'_, DownloadState>, id: Stri
     }
 }
 
+/// Ends a live recording and keeps the part captured so far.
+#[tauri::command]
+pub fn stop_recording(app: AppHandle, state: State<'_, DownloadState>, id: String) {
+    let mut jobs = state.jobs.lock().unwrap();
+    let Some(entry) = jobs.get_mut(&id) else {
+        return;
+    };
+    match entry.child.take() {
+        Some(child) => {
+            entry.desired = Desired::Stop;
+            kill_tree(child);
+        }
+        // Nothing has been recorded yet, so there is nothing to keep.
+        None => {
+            drop(jobs);
+            cancel_download(app, state, id);
+        }
+    }
+}
+
 #[tauri::command]
 pub fn cancel_download(app: AppHandle, state: State<'_, DownloadState>, id: String) {
     let mut jobs = state.jobs.lock().unwrap();
@@ -1010,6 +1103,7 @@ mod tests {
             audio_bitrate: None,
             subtitles: None,
             section: None,
+            live: false,
             embed_metadata: false,
             embed_thumbnail: false,
             filename_template: String::new(),
@@ -1241,6 +1335,17 @@ mod tests {
             flag(&build_args(&o, "/tmp", None, "u"), "--download-archive").as_deref(),
             Some("/data/archive.txt")
         );
+    }
+
+    #[test]
+    fn live_recording_waits_for_the_stream_and_names_its_file() {
+        let mut o = opts(Kind::Video, None);
+        assert!(flag(&build_args(&o, "/tmp", None, "u"), "--wait-for-video").is_none());
+        o.live = true;
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--wait-for-video").as_deref(), Some("30"));
+        assert!(args.contains(&"--hls-use-mpegts".to_string()));
+        assert!(args.contains(&"before_dl:REC|%(filename)s".to_string()));
     }
 
     #[test]

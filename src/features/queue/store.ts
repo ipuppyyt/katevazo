@@ -15,6 +15,8 @@ export interface QueueItem {
 export interface Job extends Omit<DownloadUpdate, "title"> {
   /** When a scheduled download is due to start, in milliseconds since the epoch. */
   scheduledFor: number | null;
+  /** A live recording, which has no end point to show progress towards. */
+  live: boolean;
   title: string;
   label: string;
   thumbnail: string | null;
@@ -50,6 +52,7 @@ export function describe(o: DownloadOptions): string {
 const blank = ({ title, ...u }: DownloadUpdate): Job => ({
   ...u,
   scheduledFor: null,
+  live: false,
   title: title ?? "…",
   label: "",
   thumbnail: null,
@@ -65,6 +68,7 @@ export const useQueue = create<QueueState>((set) => ({
       label,
       thumbnail: meta.thumbnail,
       scheduledFor: options.start_at ?? null,
+      live: options.live ?? false,
     };
     // Events can arrive before this resolves; keep any job `apply` already created.
     set((s) =>

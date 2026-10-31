@@ -27,9 +27,9 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Beyond YouTube
 
-- [ ] Site badge and per-site notes; test the common sites (Vimeo, SoundCloud, X, Instagram, TikTok, Twitch)
-- [ ] Live-stream recording and waiting for premieres
-- [ ] Convert existing files with the bundled ffmpeg
+- [x] Site badge and per-site notes; test the common sites (Vimeo, SoundCloud, X, Instagram, TikTok, Twitch)
+- [x] Live-stream recording and waiting for premieres
+- [x] Convert existing files with the bundled ffmpeg
 
 ## App polish
 

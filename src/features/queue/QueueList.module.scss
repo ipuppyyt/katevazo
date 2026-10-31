@@ -89,6 +89,24 @@
   overflow: hidden;
 }
 
+.fill[data-live="true"] {
+  width: 35% !important;
+  animation: sweep 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes sweep {
+  from { transform: translateX(0); }
+  to { transform: translateX(185%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill[data-live="true"] {
+    width: 100% !important;
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
 .fill {
   height: 100%;
   border-radius: 2px;

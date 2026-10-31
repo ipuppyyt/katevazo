@@ -11,8 +11,10 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Repeat,
   Rss,
   Settings,
+  Square,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -33,6 +35,8 @@ const ICONS = {
   link: Link,
   save: Download,
   rss: Rss,
+  convert: Repeat,
+  stop: Square,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;
@@ -43,7 +47,7 @@ export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
     <Glyph
       size={size}
       strokeWidth={1.9}
-      fill={name === "play" ? "currentColor" : "none"}
+      fill={name === "play" || name === "stop" ? "currentColor" : "none"}
       aria-hidden="true"
     />
   );

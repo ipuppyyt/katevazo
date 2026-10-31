@@ -7,6 +7,7 @@ import {
   pauseDownload,
   resumeDownload,
   revealFile,
+  stopRecording,
 } from "../../lib/api";
 import styles from "./QueueList.module.scss";
 import { useQueue, type Job } from "./store";
@@ -22,7 +23,7 @@ function statusText(j: Job): string {
       return "Waiting…";
     case "downloading":
       return [
-        pct ?? "Starting…",
+        j.live ? "Recording" : (pct ?? "Starting…"),
         j.speed != null ? formatSpeed(j.speed) : null,
         j.eta != null ? `${formatEta(j.eta)} left` : null,
       ]
@@ -51,6 +52,11 @@ function Controls({ job }: { job: Job }) {
     case "downloading":
       return (
         <>
+          {job.live && job.status === "downloading" && (
+            <button className={styles.icon} title="Stop and save" aria-label="Stop and save" onClick={() => stopRecording(job.id)}>
+              <Icon name="stop" size={14} />
+            </button>
+          )}
           <button className={styles.icon} title="Pause" aria-label="Pause" onClick={() => pauseDownload(job.id)}>
             <Icon name="pause" size={14} />
           </button>
@@ -144,6 +150,7 @@ export function QueueList() {
               >
                 <div
                   className={styles.fill}
+                  data-live={j.live && j.status === "downloading"}
                   style={{ width: `${j.status === "done" ? 100 : (j.percent ?? 0)}%` }}
                 />
               </div>

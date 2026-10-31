@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { siteFor } from "./sites";
 
 export interface Format {
   format_id: string;
@@ -15,6 +16,12 @@ export interface Metadata {
   thumbnail: string | null;
   duration: number | null;
   uploader: string | null;
+  /** yt-dlp's name for the site, such as "Vimeo". */
+  extractor_key: string | null;
+  /** "is_live" or "is_upcoming" for streams and premieres. */
+  live_status: string | null;
+  /** Seconds since the epoch; when an upcoming stream starts. */
+  release_timestamp: number | null;
   formats: Format[];
   playlist_count: number | null;
   subtitle_langs: string[];
@@ -41,23 +48,14 @@ export interface Playlist {
 export const fetchPlaylist = (url: string) =>
   invoke<Playlist>("fetch_playlist", { url });
 
-/** True for a link Katevazo can download; so far that means YouTube. */
-export function isVideoUrl(raw: string): boolean {
-  try {
-    const u = new URL(raw.trim());
-    return (
-      (u.protocol === "https:" || u.protocol === "http:") &&
-      /^(www\.|m\.|music\.)?(youtube\.com|youtu\.be)$/.test(u.hostname)
-    );
-  } catch {
-    return false;
-  }
-}
+/** True for a link from a site Katevazo knows. Any other link can still be fetched by hand. */
+export const isVideoUrl = (raw: string): boolean => siteFor(raw) !== null;
 
 /** True for YouTube playlist and channel links, which list many videos. */
 export function isPlaylistUrl(raw: string): boolean {
   try {
     const u = new URL(raw);
+    if (/(^|\.)soundcloud\.com$/.test(u.hostname)) return /^\/[^/]+\/sets\/[^/]+\/?$/.test(u.pathname);
     if (!/(^|\.)youtube\.com$/.test(u.hostname)) return false;
     const path = u.pathname.replace(/\/+$/, "");
     if (path === "/playlist") return true;
@@ -105,6 +103,8 @@ export interface DownloadOptions {
   subtitles?: { lang: string; auto: boolean; embed: boolean } | null;
   /** Keep only this part of the video, in seconds. */
   section?: { start: number; end: number } | null;
+  /** Record a live stream (or wait for one to start) instead of downloading a video. */
+  live?: boolean;
   /** Wait until this time (milliseconds since the epoch) before starting. */
   start_at?: number | null;
   dir?: string | null;
@@ -209,6 +209,16 @@ export const resumeDownload = (id: string) =>
 
 export const cancelDownload = (id: string) =>
   invoke<void>("cancel_download", { id });
+
+/** Ends a live recording and keeps what was captured. */
+export const stopRecording = (id: string) => invoke<void>("stop_recording", { id });
+
+export type ConvertTarget = "mp4" | "mkv" | "webm" | "mp3" | "m4a" | "opus" | "flac" | "wav";
+
+/** Converts a file on disk; resolves to the new file's path. */
+export const convertFile = (id: string, input: string, target: ConvertTarget) =>
+  invoke<string>("convert_file", { id, input, target });
+export const cancelConvert = (id: string) => invoke<void>("cancel_convert", { id });
 
 export function formatSpeed(bytesPerSecond: number): string {
   const mb = bytesPerSecond / 1024 / 1024;
