@@ -1,5 +1,10 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
+import { Toast } from "./components/Toast";
+import { CommandPalette } from "./features/palette/CommandPalette";
+import { ShortcutsHelp } from "./features/palette/ShortcutsHelp";
+import { useShortcuts } from "./features/palette/useShortcuts";
+import { useLang, useT } from "./lib/i18n";
 import { DropOverlay } from "./features/add/DropOverlay";
 import { useApp, type Tab } from "./lib/app";
 import styles from "./App.module.scss";
@@ -26,6 +31,8 @@ const platform = detectPlatform();
 const isMac = platform === "mac";
 
 function App() {
+  useShortcuts();
+  const t = useT();
   const tab = useApp((s) => s.tab);
   const setTab = useApp((s) => s.setTab);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
@@ -36,7 +43,12 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.platform = platform;
     const unlisten = listenForUpdates();
-    getSettings().then((s) => applyTheme(s.theme)).catch(() => {});
+    getSettings()
+      .then((s) => {
+        applyTheme(s.theme);
+        useLang.getState().set(s.language);
+      })
+      .catch(() => {});
     return () => void unlisten.then((fn) => fn());
   }, []);
 
@@ -52,6 +64,9 @@ function App() {
   return (
     <div className={styles.shell}>
       <DropOverlay />
+      <CommandPalette />
+      <ShortcutsHelp />
+      <Toast />
       <aside className={styles.sidebar}>
         {/* Draggable strip: native traffic lights overlay it on macOS; elsewhere it shows the app name. */}
         <div className={styles.sidebarTop} data-tauri-drag-region>
@@ -67,7 +82,7 @@ function App() {
           {NAV.map(({ id, icon }) => (
             <button key={id} data-active={id === tab} onClick={() => setTab(id)}>
               <Icon name={icon} size={16} />
-              <span>{id}</span>
+              <span>{t(`nav.${id}`)}</span>
               {id === "Downloads" && active > 0 && <em>{active}</em>}
             </button>
           ))}
@@ -83,7 +98,7 @@ function App() {
 
       <section className={styles.pane}>
         <header className={styles.toolbar} data-tauri-drag-region>
-          <h1 className={styles.title}>{tab}</h1>
+          <h1 className={styles.title}>{t(`nav.${tab}`)}</h1>
           <div className={styles.slot} ref={setSlot} />
           {!isMac && <WindowControls platform={platform} />}
         </header>

@@ -30,14 +30,3 @@
   }
 }
 
-.notice {
-  position: fixed;
-  left: 50%;
-  bottom: var(--space-5);
-  z-index: 50;
-  transform: translateX(-50%);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius);
-  background: var(--surface-2);
-  box-shadow: 0 0 0 0.5px var(--separator), 0 6px 20px rgb(0 0 0 / 0.25);
-}

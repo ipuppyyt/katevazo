@@ -1,0 +1,42 @@
+import type { Key } from "./en";
+
+export const es: Partial<Record<Key, string>> = {
+  "nav.Downloads": "Descargas",
+  "nav.History": "Historial",
+  "nav.Subscriptions": "Suscripciones",
+  "nav.Convert": "Convertir",
+  "nav.Settings": "Ajustes",
+
+  "drop.title": "Suelta para descargar",
+  "drop.hint": "Un enlace, o un archivo de texto con un enlace por línea",
+  "drop.none": "No se encontraron enlaces en lo que soltaste.",
+
+  "palette.title": "Paleta de comandos",
+  "palette.placeholder": "Escribe un comando…",
+  "palette.empty": "Ningún comando coincide",
+  "palette.goto": "Ir a {name}",
+  "palette.paste": "Añadir el enlace del portapapeles",
+  "palette.pasteNone": "No hay ningún enlace en el portapapeles.",
+  "palette.focusUrl": "Introducir un enlace",
+  "palette.checkSubs": "Buscar novedades en las suscripciones",
+  "palette.checked": "{count} vídeos nuevos en la cola",
+  "palette.checked_one": "1 vídeo nuevo en la cola",
+  "palette.checked_zero": "No hay vídeos nuevos",
+  "palette.updateYtdlp": "Actualizar yt-dlp",
+  "palette.updated": "yt-dlp ahora es {version}",
+  "palette.clearFinished": "Quitar las descargas terminadas",
+  "palette.theme": "Cambiar de tema (ahora: {theme})",
+  "palette.shortcuts": "Ver los atajos de teclado",
+  "palette.failed": "No se pudo: {error}",
+  "theme.system": "sistema",
+  "theme.light": "claro",
+  "theme.dark": "oscuro",
+
+  "shortcuts.title": "Atajos de teclado",
+  "shortcuts.palette": "Abrir la paleta de comandos",
+  "shortcuts.tabs": "Cambiar de sección",
+  "shortcuts.focus": "Introducir un enlace",
+  "shortcuts.settings": "Abrir Ajustes",
+  "shortcuts.paste": "Pegar un enlace en cualquier parte de la ventana",
+  "shortcuts.close": "Cerrar",
+};

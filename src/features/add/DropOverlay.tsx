@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Icon } from "../../components/Icon";
 import { useApp } from "../../lib/app";
+import { useT } from "../../lib/i18n";
+import { toast } from "../../lib/toast";
 import { extractLinks } from "../../lib/links";
 import styles from "./DropOverlay.module.scss";
 
@@ -14,8 +16,8 @@ const MAX_LIST_BYTES = 2_000_000;
  */
 export function DropOverlay() {
   const [over, setOver] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const openLinks = useApp((s) => s.openLinks);
+  const t = useT();
 
   useEffect(() => {
     let depth = 0;
@@ -50,8 +52,7 @@ export function DropOverlay() {
       }
       const links = extractLinks(text);
       if (links.length === 0) {
-        setNotice("No links found in what you dropped.");
-        window.setTimeout(() => setNotice(null), 3500);
+        toast(t("drop.none"));
       } else {
         openLinks(links);
       }
@@ -66,6 +67,7 @@ export function DropOverlay() {
       window.removeEventListener("dragleave", leave);
       window.removeEventListener("drop", drop);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openLinks]);
 
   return (
@@ -74,14 +76,9 @@ export function DropOverlay() {
         <div className={styles.overlay} aria-hidden="true">
           <div className={styles.box}>
             <Icon name="link" size={36} />
-            <strong>Drop to download</strong>
-            <span>A link, or a text file with one link per line</span>
+            <strong>{t("drop.title")}</strong>
+            <span>{t("drop.hint")}</span>
           </div>
-        </div>
-      )}
-      {notice && (
-        <div className={styles.notice} role="status">
-          {notice}
         </div>
       )}
     </>

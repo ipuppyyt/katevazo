@@ -13,6 +13,10 @@ interface AppState {
   /** Same, for raw text that may contain links. */
   openText: (text: string) => void;
   clearIncoming: () => void;
+  palette: boolean;
+  shortcuts: boolean;
+  setPalette: (open: boolean) => void;
+  setShortcuts: (open: boolean) => void;
 }
 
 let counter = 0;
@@ -27,4 +31,8 @@ export const useApp = create<AppState>((set, get) => ({
   },
   openText: (text) => get().openLinks(extractLinks(text)),
   clearIncoming: () => set({ incoming: null }),
+  palette: false,
+  shortcuts: false,
+  setPalette: (palette) => set({ palette, shortcuts: false }),
+  setShortcuts: (shortcuts) => set({ shortcuts, palette: false }),
 }));
