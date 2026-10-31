@@ -138,7 +138,8 @@
 
   // The list is drawn by the OS: without these it inherits the pale text but a white
   // background in dark mode, so the choices look empty.
-  option {
+  option,
+  optgroup {
     background-color: var(--surface-2);
     color: var(--text);
   }
