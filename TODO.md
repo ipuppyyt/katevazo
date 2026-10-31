@@ -33,14 +33,14 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## App polish
 
-- [ ] Drag and drop a link, or a `.txt` list of links, onto the window
-- [ ] Browser extension or `katevazo://` links to send a page to the app
-- [ ] System tray: keep downloading in the background, with a quick-add shortcut
-- [ ] Localization
-- [ ] Keyboard shortcuts and a command palette
-- [ ] Search and filter history, re-download, show in folder
-- [ ] First-run onboarding and a "What's new" screen
-- [ ] Accessibility pass: screen reader labels, focus order, reduced motion
+- [x] Drag and drop a link, or a `.txt` list of links, onto the window
+- [x] Browser extension or `katevazo://` links to send a page to the app
+- [x] System tray: keep downloading in the background, with a quick-add shortcut
+- [x] Localization
+- [x] Keyboard shortcuts and a command palette
+- [x] Search and filter history, re-download, show in folder
+- [x] First-run onboarding and a "What's new" screen
+- [x] Accessibility pass: screen reader labels, focus order, reduced motion
 
 ## Distribution and trust
 

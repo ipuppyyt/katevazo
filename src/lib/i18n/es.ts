@@ -6,6 +6,7 @@ export const es: Partial<Record<Key, string>> = {
   "nav.Subscriptions": "Suscripciones",
   "nav.Convert": "Convertir",
   "nav.Settings": "Ajustes",
+  "nav.label": "Secciones",
 
   "drop.title": "Suelta para descargar",
   "drop.hint": "Un enlace, o un archivo de texto con un enlace por línea",

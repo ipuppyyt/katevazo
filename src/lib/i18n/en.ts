@@ -5,6 +5,7 @@ export const en = {
   "nav.Subscriptions": "Subscriptions",
   "nav.Convert": "Convert",
   "nav.Settings": "Settings",
+  "nav.label": "Sections",
 
   "drop.title": "Drop to download",
   "drop.hint": "A link, or a text file with one link per line",

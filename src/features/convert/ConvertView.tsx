@@ -99,7 +99,7 @@ export function ConvertView() {
             <li key={i.id} className={styles.item} data-status={i.status}>
               <div className={styles.text}>
                 <span className={styles.name}>{i.name}</span>
-                <div className={styles.track} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(i.percent)}>
+                <div className={styles.track} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(i.percent)} aria-label={i.name}>
                   <div className={styles.fill} style={{ width: `${i.percent}%` }} />
                 </div>
                 <span className={i.status === "error" ? styles.problem : styles.meta}>{statusText(i)}</span>

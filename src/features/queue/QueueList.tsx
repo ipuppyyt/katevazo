@@ -147,6 +147,7 @@ export function QueueList() {
               <div
                 className={styles.track}
                 role="progressbar"
+                aria-label={j.title}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={Math.round(j.percent ?? 0)}
@@ -157,7 +158,7 @@ export function QueueList() {
                   style={{ width: `${j.status === "done" ? 100 : (j.percent ?? 0)}%` }}
                 />
               </div>
-              <div className={styles.status}>{statusText(j)}</div>
+              <div className={styles.status} aria-live={j.status === "downloading" ? "off" : "polite"}>{statusText(j)}</div>
             </div>
             <div className={styles.controls}>
               <Controls job={j} />

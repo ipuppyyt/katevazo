@@ -25,6 +25,8 @@
 - A single, steady progress bar even when video and audio are fetched as separate streams
 - Download history, a configurable save folder, and light, dark or system appearance
 - One-click yt-dlp updates from inside the app, so downloads keep working when sites change
+- Drag and drop links, a command palette (Ctrl/Cmd+K), a system tray with a Ctrl/Cmd+Shift+D quick-add shortcut, `katevazo://` links and a [browser extension](extension/README.md)
+- English and Spanish interface
 - A native-feeling Apple-style interface that follows each platform's window conventions
 - Small installers and low memory use, thanks to Tauri (no bundled browser)
 

@@ -80,9 +80,9 @@ function App() {
             </span>
           )}
         </div>
-        <nav className={styles.nav} aria-label="Sections">
+        <nav className={styles.nav} aria-label={t("nav.label")}>
           {NAV.map(({ id, icon }) => (
-            <button key={id} data-active={id === tab} onClick={() => setTab(id)}>
+            <button key={id} data-active={id === tab} aria-current={id === tab ? "page" : undefined} onClick={() => setTab(id)}>
               <Icon name={icon} size={16} />
               <span>{t(`nav.${id}`)}</span>
               {id === "Downloads" && active > 0 && <em>{active}</em>}

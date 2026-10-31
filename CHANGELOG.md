@@ -6,6 +6,20 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Drop a link, or a text file of links, onto the window to add them. Several links open as a batch with one shared format.
+- `katevazo://download?url=…` links and a small browser extension (in `extension/`) send the page you are on to Katevazo.
+- System tray: closing the window can keep Katevazo running in the background, and Ctrl/Cmd+Shift+D adds the link on your clipboard from anywhere.
+- Command palette (Ctrl/Cmd+K) and keyboard shortcuts for switching tabs, focusing the link field and opening Settings.
+- Search and filter History, and download an item again.
+- A welcome screen on first launch and a What's new screen after updates.
+- The interface can be shown in English or Spanish; more languages can be added in `src/lib/i18n`.
+
+### Changed
+
+- Screen reader labels, a visible keyboard focus ring and announced status changes in the queue.
+
 ## [0.4.0] - 2026-10-31
 
 ### Added
