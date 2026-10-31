@@ -157,6 +157,24 @@ impl Subtitles {
     }
 }
 
+/// A start and end time, in seconds, to keep from the video.
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct Section {
+    pub start: f64,
+    pub end: f64,
+}
+
+impl Section {
+    fn is_valid(&self) -> bool {
+        self.start.is_finite() && self.end.is_finite() && self.start >= 0.0 && self.end > self.start
+    }
+
+    /// yt-dlp's `--download-sections` syntax: `*START-END` in seconds.
+    fn arg(&self) -> String {
+        format!("*{}-{}", self.start, self.end)
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Options {
     pub kind: Kind,
@@ -173,6 +191,9 @@ pub struct Options {
     pub audio_bitrate: Option<u32>,
     #[serde(default)]
     pub subtitles: Option<Subtitles>,
+    /// Download only this part of the video.
+    #[serde(default)]
+    pub section: Option<Section>,
     /// Both come from the user's settings rather than from the caller.
     #[serde(skip)]
     pub embed_metadata: bool,
@@ -413,6 +434,10 @@ fn build_args(options: &Options, out_dir: &str, ffmpeg: Option<&str>, url: &str)
         if s.embed && options.kind == Kind::Video {
             a.push("--embed-subs".into());
         }
+    }
+    if let Some(sec) = options.section.filter(Section::is_valid) {
+        // Cut on the exact frames rather than the nearest keyframes; ffmpeg re-encodes the edges.
+        a.extend(["--download-sections".into(), sec.arg(), "--force-keyframes-at-cuts".into()]);
     }
     // `--` stops option parsing so the URL can never be read as a flag.
     a.push("--".into());
@@ -775,6 +800,7 @@ mod tests {
             audio_format: AudioFormat::default(),
             audio_bitrate: None,
             subtitles: None,
+            section: None,
             embed_metadata: false,
             embed_thumbnail: false,
             filename_template: String::new(),
@@ -959,6 +985,24 @@ mod tests {
         assert!(is_subtitle_file("C:/x/Title [id].en.vtt"));
         assert!(is_subtitle_file("Title.en.vtt.part"));
         assert!(!is_subtitle_file("Title [id].f137.mp4"));
+    }
+
+    #[test]
+    fn trims_to_a_section() {
+        let mut o = opts(Kind::Video, None);
+        o.section = Some(Section { start: 62.5, end: 90.0 });
+        let args = build_args(&o, "/tmp", None, "u");
+        assert_eq!(flag(&args, "--download-sections").as_deref(), Some("*62.5-90"));
+        assert!(args.contains(&"--force-keyframes-at-cuts".to_string()));
+    }
+
+    #[test]
+    fn invalid_sections_are_ignored() {
+        for (start, end) in [(10.0, 10.0), (20.0, 10.0), (-1.0, 5.0), (0.0, f64::INFINITY), (f64::NAN, 5.0)] {
+            let mut o = opts(Kind::Video, None);
+            o.section = Some(Section { start, end });
+            assert!(flag(&build_args(&o, "/tmp", None, "u"), "--download-sections").is_none());
+        }
     }
 
     #[test]

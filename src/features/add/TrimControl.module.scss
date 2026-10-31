@@ -1,0 +1,39 @@
+@use "../../styles/mixins" as *;
+
+.trim {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+
+  input {
+    accent-color: var(--accent);
+    margin: 0;
+  }
+}
+
+.time {
+  @include text-field;
+  width: 72px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  &[aria-invalid="true"] {
+    box-shadow: inset 0 0 0 1px var(--danger);
+  }
+}
+
+.to {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+}

@@ -17,7 +17,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Power-user features
 
-- [ ] Trim a section: download only a start and end time
+- [x] Trim a section: download only a start and end time
 - [ ] Speed limit and a setting for simultaneous downloads
 - [ ] Scheduled downloads and automatic retry with backoff
 - [ ] Proxy support and sign-in with browser cookies

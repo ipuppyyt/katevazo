@@ -101,6 +101,8 @@ export interface DownloadOptions {
   /** kbit/s; null means the best quality. */
   audio_bitrate?: number | null;
   subtitles?: { lang: string; auto: boolean; embed: boolean } | null;
+  /** Keep only this part of the video, in seconds. */
+  section?: { start: number; end: number } | null;
   dir?: string | null;
   title?: string | null;
 }
@@ -214,4 +216,11 @@ export function availableHeights(formats: Format[]): number[] {
     .filter((f) => f.height && f.vcodec && f.vcodec !== "none")
     .map((f) => f.height as number);
   return [...new Set(heights)].sort((a, b) => b - a);
+}
+
+/** Reads "83", "1:23" or "1:02:03" as seconds; null when it is not a time. */
+export function parseTime(text: string): number | null {
+  const parts = text.trim().split(":");
+  if (parts.length > 3 || parts.some((p) => !/^\d+(\.\d+)?$/.test(p))) return null;
+  return parts.reduce((total, p) => total * 60 + Number(p), 0);
 }

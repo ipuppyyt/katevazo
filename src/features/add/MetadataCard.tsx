@@ -8,17 +8,21 @@ import {
 import { useQueue } from "../queue/store";
 import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./MetadataCard.module.scss";
+import { defaultTrim, resolveTrim, TrimControl } from "./TrimControl";
 
 export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
   const heights = availableHeights(meta.formats);
   const [choice, setChoice] = useState<FormatChoice>(defaultChoice);
+  const [trim, setTrim] = useState(() => defaultTrim(meta.duration));
   const [error, setError] = useState<string | null>(null);
   const add = useQueue((s) => s.add);
 
   async function download() {
     setError(null);
+    const { section, error: trimError } = resolveTrim(trim, meta.duration);
+    if (trimError) return setError(trimError);
     try {
-      await add(meta, url, toOptions(choice));
+      await add(meta, url, { ...toOptions(choice), section });
     } catch (e) {
       setError(String(e));
     }
@@ -33,13 +37,16 @@ export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
           {[meta.uploader, formatDuration(meta.duration)].filter(Boolean).join(" · ")}
         </p>
         <div className={styles.actions}>
-          <FormatPicker
+          <div className={styles.pickers}>
+            <FormatPicker
             value={choice}
             onChange={setChoice}
             heights={heights}
             codecs={availableCodecs(meta.formats)}
             subtitles={{ manual: meta.subtitle_langs, auto: meta.auto_caption_langs }}
-          />
+            />
+            <TrimControl value={trim} onChange={setTrim} duration={meta.duration} />
+          </div>
           <button className={styles.primary} onClick={download}>
             Download
           </button>
