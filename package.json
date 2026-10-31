@@ -1,7 +1,7 @@
 {
   "name": "katevazo",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A clean, cross-platform video downloader built with Tauri, Rust and React",
   "license": "MIT",
   "homepage": "https://github.com/ipuppyyt/katevazo#readme",
