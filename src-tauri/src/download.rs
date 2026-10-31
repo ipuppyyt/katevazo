@@ -92,7 +92,7 @@ pub enum Kind {
     Audio,
 }
 
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Container {
     #[default]
@@ -112,7 +112,7 @@ impl Container {
 }
 
 /// Preferred video codec; falls back to the best available when the video has none of it.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Codec {
     #[default]
@@ -158,7 +158,7 @@ impl SponsorBlock {
 /// Segments that are not part of the video itself.
 const SPONSOR_CATEGORIES: &str = "sponsor,selfpromo,interaction";
 
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioFormat {
     #[default]
@@ -186,7 +186,7 @@ impl AudioFormat {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subtitles {
     /// Language code as listed by yt-dlp, e.g. `en`, `pt-BR` or `de-orig`.
     pub lang: String,
@@ -207,7 +207,7 @@ impl Subtitles {
 }
 
 /// A start and end time, in seconds, to keep from the video.
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Section {
     pub start: f64,
     pub end: f64,
@@ -224,7 +224,7 @@ impl Section {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Options {
     pub kind: Kind,
     /// Maximum video height (e.g. 1080); `None` means best available.
@@ -295,6 +295,8 @@ pub struct Update {
     pub eta: Option<u64>,
     pub file: Option<String>,
     pub error: Option<String>,
+    /// Set when a download starts, for jobs the UI did not add itself (subscriptions).
+    pub title: Option<String>,
 }
 
 impl Update {
@@ -307,6 +309,7 @@ impl Update {
             eta: None,
             file: None,
             error: None,
+            title: None,
         }
     }
 
@@ -575,14 +578,15 @@ fn emit(app: &AppHandle, update: Update) {
 // ---------------------------------------------------------------------------
 
 #[tauri::command]
-pub async fn start_download(
-    app: AppHandle,
-    state: State<'_, DownloadState>,
-    url: String,
-    mut options: Options,
-) -> Result<String, String> {
+pub async fn start_download(app: AppHandle, url: String, options: Options) -> Result<String, String> {
+    enqueue(&app, url, options)
+}
+
+/// Adds a download to the queue; shared by the UI and by subscriptions.
+pub fn enqueue(app: &AppHandle, url: String, mut options: Options) -> Result<String, String> {
+    let state = app.state::<DownloadState>();
     let id = state.next_id.fetch_add(1, Ordering::Relaxed).to_string();
-    let prefs = settings::load(&app);
+    let prefs = settings::load(app);
     options.embed_metadata = prefs.embed_metadata;
     options.embed_thumbnail = prefs.embed_thumbnail;
     options.filename_template = prefs.filename_template.clone();
@@ -590,8 +594,9 @@ pub async fn start_download(
     options.max_retries = prefs.max_retries;
     options.sponsorblock = SponsorBlock::from_setting(&prefs.sponsorblock);
     if prefs.use_archive {
-        options.archive = Some(crate::archive::path(&app)?.to_string_lossy().into_owned());
+        options.archive = Some(crate::archive::path(app)?.to_string_lossy().into_owned());
     }
+    let title = options.title.clone();
     let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
@@ -611,8 +616,10 @@ pub async fn start_download(
             attempts: 0,
         },
     );
-    emit(&app, Update::new(&id, Status::Queued));
-    spawn_task(&app, id.clone());
+    let mut queued = Update::new(&id, Status::Queued);
+    queued.title = title;
+    emit(app, queued);
+    spawn_task(app, id.clone());
     Ok(id)
 }
 

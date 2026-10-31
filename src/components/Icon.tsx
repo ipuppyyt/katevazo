@@ -11,6 +11,7 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Rss,
   Settings,
   X,
   type LucideIcon,
@@ -31,6 +32,7 @@ const ICONS = {
   gear: Settings,
   link: Link,
   save: Download,
+  rss: Rss,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

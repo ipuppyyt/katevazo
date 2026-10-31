@@ -86,6 +86,8 @@ export interface DownloadUpdate {
   eta: number | null;
   file: string | null;
   error: string | null;
+  /** Sent when a download starts, for ones the window did not add itself. */
+  title?: string | null;
 }
 
 export type Container = "mp4" | "mkv" | "webm";
@@ -174,6 +176,23 @@ export function applyTheme(theme: Theme) {
 
 export const startDownload = (url: string, options: DownloadOptions) =>
   invoke<string>("start_download", { url, options });
+
+export interface Subscription {
+  id: string;
+  url: string;
+  title: string;
+  options: DownloadOptions;
+  /** Milliseconds since the epoch. */
+  last_checked: number | null;
+  last_error: string | null;
+}
+
+export const listSubscriptions = () => invoke<Subscription[]>("list_subscriptions");
+export const addSubscription = (url: string, options: DownloadOptions) =>
+  invoke<Subscription>("add_subscription", { url, options });
+export const removeSubscription = (id: string) => invoke<void>("remove_subscription", { id });
+/** Looks for new uploads now; resolves to how many videos were queued. */
+export const checkSubscriptions = () => invoke<number>("check_subscriptions");
 
 /** Opens a finished download in its default app. */
 export const openFile = (path: string) => invoke<void>("open_file", { path });

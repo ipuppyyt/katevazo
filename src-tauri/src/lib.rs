@@ -4,6 +4,7 @@ mod files;
 mod history;
 mod notify;
 mod settings;
+mod subscriptions;
 mod template;
 mod ytdlp;
 
@@ -18,6 +19,7 @@ pub fn run() {
         .manage(download::DownloadState::default())
         .setup(|app| {
             download::set_concurrency(app.handle(), settings::load(app.handle()).max_concurrent as usize);
+            subscriptions::start_checking(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -29,6 +31,10 @@ pub fn run() {
             ytdlp::update_ytdlp,
             archive::archive_size,
             archive::clear_archive,
+            subscriptions::list_subscriptions,
+            subscriptions::add_subscription,
+            subscriptions::remove_subscription,
+            subscriptions::check_subscriptions,
             download::start_download,
             download::pause_download,
             download::resume_download,

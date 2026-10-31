@@ -132,7 +132,7 @@ pub fn parse_playlist(json: &str) -> Result<Playlist, String> {
 }
 
 /// A bare channel link lists its tabs rather than videos, so point it at the Videos tab.
-fn playlist_url(url: &str) -> String {
+pub fn playlist_url(url: &str) -> String {
     let base = url.split(['?', '#']).next().unwrap_or(url).trim_end_matches('/');
     let Some(path) = base
         .split_once("youtube.com/")
@@ -266,9 +266,13 @@ pub async fn fetch_metadata(app: AppHandle, url: String) -> Result<Metadata, Str
 /// Lists the videos in a playlist or channel without fetching each one's formats.
 #[tauri::command]
 pub async fn fetch_playlist(app: AppHandle, url: String) -> Result<Playlist, String> {
-    let url = playlist_url(&url);
+    list_playlist(&app, &url).await
+}
+
+pub async fn list_playlist(app: &AppHandle, url: &str) -> Result<Playlist, String> {
+    let url = playlist_url(url);
     let json = run(
-        &app,
+        app,
         &[
             "--flat-playlist",
             "--dump-single-json",

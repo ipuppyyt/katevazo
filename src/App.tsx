@@ -7,14 +7,16 @@ import { DownloadsView } from "./features/add/DownloadsView";
 import { HistoryView } from "./features/history/HistoryView";
 import { listenForUpdates, useQueue } from "./features/queue/store";
 import { SettingsView } from "./features/settings/SettingsView";
+import { SubscriptionsView } from "./features/subscriptions/SubscriptionsView";
 import { applyTheme, getSettings } from "./lib/api";
 
 const NAV: { id: Tab; icon: IconName }[] = [
   { id: "Downloads", icon: "save" },
   { id: "History", icon: "history" },
+  { id: "Subscriptions", icon: "rss" },
   { id: "Settings", icon: "gear" },
 ];
-type Tab = "Downloads" | "History" | "Settings";
+type Tab = "Downloads" | "History" | "Subscriptions" | "Settings";
 
 const platform = detectPlatform();
 const isMac = platform === "mac";
@@ -77,6 +79,7 @@ function App() {
               <DownloadsView active={tab === "Downloads"} />
             </div>
             {tab === "History" && <HistoryView />}
+            {tab === "Subscriptions" && <SubscriptionsView />}
             {tab === "Settings" && <SettingsView />}
           </main>
         </ToolbarSlotContext.Provider>

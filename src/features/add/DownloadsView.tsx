@@ -90,7 +90,7 @@ export function DownloadsView({ active }: { active: boolean }) {
       )}
       {error && <div className={styles.error}>{error}</div>}
       {meta && <MetadataCard meta={meta} url={url.trim()} />}
-      {playlist && <PlaylistCard key={playlist.title} playlist={playlist} />}
+      {playlist && <PlaylistCard key={playlist.title} playlist={playlist} url={url.trim()} />}
       <QueueList />
       {!meta && !playlist && !error && !hasJobs && (
         <div className={styles.empty}>

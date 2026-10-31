@@ -14,6 +14,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Retry on its own after network errors, waiting 5, 15 and 45 seconds and so on (Settings: Retry on network errors).
 - SponsorBlock: mark sponsor segments as chapters or cut them out (Settings: SponsorBlock). This bundles ffprobe, so installers are about 25 MB larger.
 - Skip videos you have already downloaded, with a button to forget them (Settings: Skip videos already downloaded).
+- Subscriptions: subscribe to a channel or playlist and new uploads download automatically every 30 minutes while the app is open.
 - Proxy support, and sign-in using the cookies of a browser you are already signed in to (Settings: Network).
 
 ### Fixed

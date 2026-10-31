@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { formatDuration, type Playlist } from "../../lib/api";
+import { addSubscription, formatDuration, type Playlist } from "../../lib/api";
 import { useQueue } from "../queue/store";
 import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./PlaylistCard.module.scss";
 
 const HEIGHTS = [2160, 1440, 1080, 720, 480, 360];
 
-export function PlaylistCard({ playlist }: { playlist: Playlist }) {
+export function PlaylistCard({ playlist, url }: { playlist: Playlist; url: string }) {
   const { entries } = playlist;
   const [selected, setSelected] = useState(() => new Set(entries.map((e) => e.id)));
   const [choice, setChoice] = useState<FormatChoice>(defaultChoice);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
   const add = useQueue((s) => s.add);
 
   const all = selected.size === entries.length;
@@ -36,6 +37,16 @@ export function PlaylistCard({ playlist }: { playlist: Playlist }) {
       setError(String(e));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function subscribe() {
+    setError(null);
+    try {
+      await addSubscription(url, toOptions(choice));
+      setSubscribed(true);
+    } catch (e) {
+      setError(String(e));
     }
   }
 
@@ -83,6 +94,9 @@ export function PlaylistCard({ playlist }: { playlist: Playlist }) {
 
       <div className={styles.actions}>
         <FormatPicker value={choice} onChange={setChoice} heights={HEIGHTS} />
+        <button className={styles.secondary} onClick={subscribe} disabled={subscribed}>
+          {subscribed ? "Subscribed" : "Subscribe"}
+        </button>
         <button
           className={styles.primary}
           onClick={download}
@@ -91,6 +105,11 @@ export function PlaylistCard({ playlist }: { playlist: Playlist }) {
           {selected.size === 1 ? "Download 1 video" : `Download ${selected.size} videos`}
         </button>
       </div>
+      {subscribed && (
+        <p className={styles.note}>
+          New uploads will download automatically while Katevazo is open, in the format chosen above.
+        </p>
+      )}
       {error && <p className={styles.error}>{error}</p>}
     </section>
   );

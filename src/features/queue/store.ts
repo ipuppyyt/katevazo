@@ -12,7 +12,7 @@ export interface QueueItem {
   thumbnail: string | null;
 }
 
-export interface Job extends DownloadUpdate {
+export interface Job extends Omit<DownloadUpdate, "title"> {
   /** When a scheduled download is due to start, in milliseconds since the epoch. */
   scheduledFor: number | null;
   title: string;
@@ -37,7 +37,7 @@ interface QueueState {
 }
 
 /** Short summary of the chosen format, shown on the job row (e.g. "1080p · MKV"). */
-function describe(o: DownloadOptions): string {
+export function describe(o: DownloadOptions): string {
   if (o.kind === "audio") {
     const bitrate = o.audio_bitrate ? ` · ${o.audio_bitrate} kbps` : "";
     return (o.audio_format ?? "mp3").toUpperCase() + bitrate;
@@ -47,10 +47,10 @@ function describe(o: DownloadOptions): string {
   return `${quality} · ${(o.container ?? "mp4").toUpperCase()}${codec}`;
 }
 
-const blank = (u: DownloadUpdate): Job => ({
+const blank = ({ title, ...u }: DownloadUpdate): Job => ({
   ...u,
   scheduledFor: null,
-  title: "…",
+  title: title ?? "…",
   label: "",
   thumbnail: null,
 });
@@ -90,10 +90,13 @@ export const useQueue = create<QueueState>((set) => ({
           if (j.id !== u.id) return j;
           // A cancel can be reported twice (immediately, then when the process exits).
           if (j.status === "cancelled") return j;
+          // Only a job's first update carries its title; later ones must not blank it.
+          const { title, ...update } = u;
           const finished = u.status === "done" || u.status === "error" || u.status === "paused";
           return {
             ...j,
-            ...u,
+            ...update,
+            title: j.title === "…" && title ? title : j.title,
             // The backend's percentage is already monotonic; just ignore gaps.
             percent: u.percent ?? j.percent,
             speed: finished ? null : u.speed,

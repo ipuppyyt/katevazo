@@ -97,9 +97,17 @@ input[type="checkbox"] {
   gap: var(--space-3);
 }
 
+.secondary {
+  @include button-tinted;
+  margin-left: auto;
+}
+
 .primary {
   @include button-filled;
-  margin-left: auto;
+}
+
+.note {
+  color: var(--text-muted);
 }
 
 .error {
