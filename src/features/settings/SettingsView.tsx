@@ -165,6 +165,20 @@ export function SettingsView() {
           </div>
           <div className={styles.row}>
             <div className={styles.label}>
+              <span>Keep running in the tray</span>
+              <small>
+                Closing the window hides Katevazo so downloads carry on. Copy a link and press Ctrl+Shift+D
+                (Cmd+Shift+D on a Mac) from any program to add it.
+              </small>
+            </div>
+            <Switch
+              label="Keep running in the tray"
+              checked={settings.close_to_tray}
+              onChange={(close_to_tray) => save({ ...settings, close_to_tray })}
+            />
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
               <span>Watch the clipboard</span>
               <small>Offer to download a video link when you copy one</small>
             </div>

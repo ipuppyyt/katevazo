@@ -134,6 +134,13 @@ export interface Settings {
   cookies_from_browser: string;
   /** KiB/s per download; null means unlimited. */
   speed_limit_kbps: number | null;
+  /** Closing the window hides it to the tray so downloads carry on. */
+  close_to_tray: boolean;
+  /** Interface language code, or empty to follow the system. */
+  language: string;
+  onboarded: boolean;
+  /** Version whose What's new screen was last shown. */
+  last_seen_version: string;
 }
 
 /** Fields usable in a filename template, with an example value for the live preview. */

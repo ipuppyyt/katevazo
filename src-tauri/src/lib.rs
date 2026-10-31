@@ -1,3 +1,4 @@
+use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 mod archive;
@@ -10,6 +11,7 @@ mod notify;
 mod settings;
 mod subscriptions;
 mod template;
+mod tray;
 mod ytdlp;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,6 +21,7 @@ pub fn run() {
         // to the running app and exits.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| link::show_main(app)))
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -29,6 +32,7 @@ pub fn run() {
         .setup(|app| {
             download::set_concurrency(app.handle(), settings::load(app.handle()).max_concurrent as usize);
             subscriptions::start_checking(app.handle().clone());
+            tray::setup(app.handle())?;
 
             let handle = app.handle().clone();
             app.deep_link().on_open_url(move |event| {
@@ -44,6 +48,15 @@ pub fn run() {
                 let _ = app.deep_link().register_all();
             }
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // With the tray option on, closing the window only hides it, so downloads carry on.
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event
+                && tray::keeps_running(window.app_handle())
+            {
+                api.prevent_close();
+                let _ = window.hide();
+            }
         })
         .invoke_handler(tauri::generate_handler![
             ytdlp::ytdlp_version,

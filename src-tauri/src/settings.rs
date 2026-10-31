@@ -35,6 +35,14 @@ pub struct Settings {
     pub sponsorblock: String,
     /// Browser whose cookies sign yt-dlp in (see `COOKIE_BROWSERS`); empty means none.
     pub cookies_from_browser: String,
+    /// Closing the window hides it to the system tray instead of quitting.
+    pub close_to_tray: bool,
+    /// Interface language code such as "es"; empty follows the system.
+    pub language: String,
+    /// False until the welcome screen has been dismissed.
+    pub onboarded: bool,
+    /// The version whose "What's new" the user last saw.
+    pub last_seen_version: String,
 }
 
 pub const MAX_CONCURRENT: u32 = 8;
@@ -75,6 +83,10 @@ impl Default for Settings {
             use_archive: false,
             sponsorblock: "off".into(),
             cookies_from_browser: String::new(),
+            close_to_tray: false,
+            language: String::new(),
+            onboarded: false,
+            last_seen_version: String::new(),
         }
     }
 }
@@ -116,6 +128,9 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
         && !COOKIE_BROWSERS.contains(&settings.cookies_from_browser.as_str())
     {
         return Err(format!("unknown browser: {}", settings.cookies_from_browser));
+    }
+    if settings.language.len() > 12 || !settings.language.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        return Err(format!("unknown language: {}", settings.language));
     }
     if settings.max_retries > MAX_RETRIES {
         return Err(format!("retries must be at most {MAX_RETRIES}"));
