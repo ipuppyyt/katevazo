@@ -38,6 +38,23 @@ export const en = {
   "shortcuts.settings": "Open Settings",
   "shortcuts.paste": "Paste a link anywhere in the window",
   "shortcuts.close": "Close",
+
+  "common.open": "Open",
+  "common.reveal": "Show in folder",
+
+  "history.emptyTitle": "No History",
+  "history.emptyHint": "Finished downloads appear here.",
+  "history.count": "{count} items",
+  "history.count_one": "1 item",
+  "history.matching": "{shown} of {total}",
+  "history.clear": "Clear History",
+  "history.search": "Search history",
+  "history.filter": "Show",
+  "history.all": "All",
+  "history.video": "Video",
+  "history.audio": "Audio",
+  "history.noMatches": "Nothing matches your search.",
+  "history.again": "Download again",
 } as const;
 
 export type Key = keyof typeof en;

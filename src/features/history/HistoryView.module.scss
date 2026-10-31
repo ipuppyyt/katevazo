@@ -98,3 +98,25 @@
     @include button-icon;
   }
 }
+
+.filters {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+
+  select {
+    @include select-field;
+  }
+}
+
+.search {
+  @include text-field;
+  flex: 1;
+  min-width: 0;
+}
+
+.none {
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-6) 0;
+}
