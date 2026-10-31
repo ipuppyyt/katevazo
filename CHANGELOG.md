@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-31
+
 ### Added
 
 - A badge shows which site a link is from, with a note where a site needs something extra (Vimeo, Instagram and X usually want you signed in). Links from Vimeo, SoundCloud, X, Instagram, TikTok, Twitch, Facebook, Reddit and Dailymotion are now offered when copied, and SoundCloud sets can be listed like playlists.
@@ -88,7 +90,8 @@ First public release.
 - The progress bar no longer jumps up and down when video and audio are downloaded as
   separate streams, and it stays put across pauses.
 
-[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/ipuppyyt/katevazo/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/ipuppyyt/katevazo/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/ipuppyyt/katevazo/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/ipuppyyt/katevazo/compare/v0.1.1...v0.2.0
