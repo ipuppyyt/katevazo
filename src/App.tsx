@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { DropOverlay } from "./features/add/DropOverlay";
+import { useApp, type Tab } from "./lib/app";
 import styles from "./App.module.scss";
 import { Icon, type IconName } from "./components/Icon";
 import { ToolbarSlotContext } from "./components/ToolbarSlot";
@@ -18,13 +20,13 @@ const NAV: { id: Tab; icon: IconName }[] = [
   { id: "Convert", icon: "convert" },
   { id: "Settings", icon: "gear" },
 ];
-type Tab = "Downloads" | "History" | "Subscriptions" | "Convert" | "Settings";
 
 const platform = detectPlatform();
 const isMac = platform === "mac";
 
 function App() {
-  const [tab, setTab] = useState<Tab>("Downloads");
+  const tab = useApp((s) => s.tab);
+  const setTab = useApp((s) => s.setTab);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const active = useQueue(
     (s) => s.jobs.filter((j) => ["queued", "downloading", "processing"].includes(j.status)).length,
@@ -39,6 +41,7 @@ function App() {
 
   return (
     <div className={styles.shell}>
+      <DropOverlay />
       <aside className={styles.sidebar}>
         {/* Draggable strip: native traffic lights overlay it on macOS; elsewhere it shows the app name. */}
         <div className={styles.sidebarTop} data-tauri-drag-region>

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "../../components/Icon";
+import { useApp } from "../../lib/app";
 import { ToolbarSlot } from "../../components/ToolbarSlot";
 import {
   fetchMetadata,
@@ -11,6 +12,7 @@ import {
 import { QueueList } from "../queue/QueueList";
 import { useQueue } from "../queue/store";
 import styles from "./DownloadsView.module.scss";
+import { BatchCard } from "./BatchCard";
 import { MetadataCard } from "./MetadataCard";
 import { PlaylistCard } from "./PlaylistCard";
 import { useClipboardLink } from "./useClipboardLink";
@@ -22,6 +24,9 @@ export function DownloadsView({ active }: { active: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<Metadata | null>(null);
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
+  const [batch, setBatch] = useState<string[] | null>(null);
+  const incoming = useApp((s) => s.incoming);
+  const clearIncoming = useApp((s) => s.clearIncoming);
 
   const clipboard = useClipboardLink(active);
 
@@ -30,6 +35,22 @@ export function DownloadsView({ active }: { active: boolean }) {
     load(url.trim());
   }
 
+  // Links sent from elsewhere: dropped on the window, from a browser, or a history re-download.
+  useEffect(() => {
+    if (!incoming) return;
+    clearIncoming();
+    if (incoming.links.length === 1) {
+      setUrl(incoming.links[0]);
+      void load(incoming.links[0]);
+    } else {
+      setBatch(incoming.links);
+      setMeta(null);
+      setPlaylist(null);
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incoming]);
+
   async function load(trimmed: string) {
     if (!trimmed) return;
     clipboard.dismiss();
@@ -37,6 +58,7 @@ export function DownloadsView({ active }: { active: boolean }) {
     setError(null);
     setMeta(null);
     setPlaylist(null);
+    setBatch(null);
     try {
       if (isPlaylistUrl(trimmed)) setPlaylist(await fetchPlaylist(trimmed));
       else setMeta(await fetchMetadata(trimmed));
@@ -89,10 +111,11 @@ export function DownloadsView({ active }: { active: boolean }) {
         </div>
       )}
       {error && <div className={styles.error}>{error}</div>}
+      {batch && <BatchCard key={batch.join(" ")} links={batch} />}
       {meta && <MetadataCard meta={meta} url={url.trim()} />}
       {playlist && <PlaylistCard key={playlist.title} playlist={playlist} url={url.trim()} />}
       <QueueList />
-      {!meta && !playlist && !error && !hasJobs && (
+      {!meta && !playlist && !batch && !error && !hasJobs && (
         <div className={styles.empty}>
           <Icon name="tray" size={44} />
           <h2>No Downloads</h2>
