@@ -10,6 +10,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Trim a video: download only the part between a start and end time.
 - Settings for how many downloads run at once and a speed limit for each.
+- Start a download later at a time you choose (Katevazo must be open then).
+- Retry on its own after network errors, waiting 5, 15 and 45 seconds and so on (Settings: Retry on network errors).
 
 ### Fixed
 

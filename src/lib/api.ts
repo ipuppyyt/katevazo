@@ -103,6 +103,8 @@ export interface DownloadOptions {
   subtitles?: { lang: string; auto: boolean; embed: boolean } | null;
   /** Keep only this part of the video, in seconds. */
   section?: { start: number; end: number } | null;
+  /** Wait until this time (milliseconds since the epoch) before starting. */
+  start_at?: number | null;
   dir?: string | null;
   title?: string | null;
 }
@@ -118,6 +120,8 @@ export interface Settings {
   watch_clipboard: boolean;
   notifications: boolean;
   max_concurrent: number;
+  /** Automatic retries after a network problem. */
+  max_retries: number;
   /** KiB/s per download; null means unlimited. */
   speed_limit_kbps: number | null;
 }

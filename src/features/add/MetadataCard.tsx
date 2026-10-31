@@ -8,12 +8,14 @@ import {
 import { useQueue } from "../queue/store";
 import { defaultChoice, FormatPicker, toOptions, type FormatChoice } from "./FormatPicker";
 import styles from "./MetadataCard.module.scss";
+import { defaultSchedule, resolveSchedule, ScheduleControl } from "./ScheduleControl";
 import { defaultTrim, resolveTrim, TrimControl } from "./TrimControl";
 
 export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
   const heights = availableHeights(meta.formats);
   const [choice, setChoice] = useState<FormatChoice>(defaultChoice);
   const [trim, setTrim] = useState(() => defaultTrim(meta.duration));
+  const [schedule, setSchedule] = useState(defaultSchedule);
   const [error, setError] = useState<string | null>(null);
   const add = useQueue((s) => s.add);
 
@@ -21,8 +23,10 @@ export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
     setError(null);
     const { section, error: trimError } = resolveTrim(trim, meta.duration);
     if (trimError) return setError(trimError);
+    const { startAt, error: scheduleError } = resolveSchedule(schedule);
+    if (scheduleError) return setError(scheduleError);
     try {
-      await add(meta, url, { ...toOptions(choice), section });
+      await add(meta, url, { ...toOptions(choice), section, start_at: startAt });
     } catch (e) {
       setError(String(e));
     }
@@ -46,6 +50,7 @@ export function MetadataCard({ meta, url }: { meta: Metadata; url: string }) {
             subtitles={{ manual: meta.subtitle_langs, auto: meta.auto_caption_langs }}
             />
             <TrimControl value={trim} onChange={setTrim} duration={meta.duration} />
+            <ScheduleControl value={schedule} onChange={setSchedule} />
           </div>
           <button className={styles.primary} onClick={download}>
             Download

@@ -15,6 +15,10 @@ function statusText(j: Job): string {
   const pct = j.percent != null ? `${Math.floor(j.percent)}%` : null;
   switch (j.status) {
     case "queued":
+      if (j.error) return j.error;
+      if (j.scheduledFor && j.scheduledFor > Date.now()) {
+        return `Scheduled for ${new Date(j.scheduledFor).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`;
+      }
       return "Waiting…";
     case "downloading":
       return [

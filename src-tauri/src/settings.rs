@@ -25,9 +25,12 @@ pub struct Settings {
     pub max_concurrent: u32,
     /// Cap on each download's speed in KiB/s; `None` means unlimited.
     pub speed_limit_kbps: Option<u32>,
+    /// How many times a download is retried on its own after a network problem.
+    pub max_retries: u32,
 }
 
 pub const MAX_CONCURRENT: u32 = 8;
+pub const MAX_RETRIES: u32 = 10;
 
 impl Default for Settings {
     fn default() -> Self {
@@ -41,6 +44,7 @@ impl Default for Settings {
             notifications: true,
             max_concurrent: 3,
             speed_limit_kbps: None,
+            max_retries: 3,
         }
     }
 }
@@ -74,6 +78,9 @@ pub fn set_settings(app: AppHandle, settings: Settings) -> Result<(), String> {
     if !(1..=MAX_CONCURRENT).contains(&settings.max_concurrent) {
         return Err(format!("simultaneous downloads must be 1 to {MAX_CONCURRENT}"));
     }
+    if settings.max_retries > MAX_RETRIES {
+        return Err(format!("retries must be at most {MAX_RETRIES}"));
+    }
     if settings.speed_limit_kbps == Some(0) {
         return Err("the speed limit must be above zero; turn it off instead".into());
     }
@@ -95,6 +102,6 @@ mod tests {
         assert!(s.embed_metadata && s.embed_thumbnail);
         assert_eq!(s.filename_template, "{title} [{id}]");
         assert!(s.watch_clipboard);
-        assert_eq!((s.max_concurrent, s.speed_limit_kbps), (3, None));
+        assert_eq!((s.max_concurrent, s.speed_limit_kbps, s.max_retries), (3, None, 3));
     }
 }

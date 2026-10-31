@@ -23,6 +23,8 @@ const THEMES = [
 
 const CONCURRENT = [1, 2, 3, 4, 5, 6, 8];
 
+const RETRIES = [0, 1, 2, 3, 5, 10];
+
 // KiB/s; shown as KB/s or MB/s.
 const SPEED_LIMITS = [256, 512, 1024, 2048, 5120, 10240];
 
@@ -177,6 +179,22 @@ export function SettingsView() {
               <option value="">Unlimited</option>
               {SPEED_LIMITS.map((k) => (
                 <option key={k} value={k}>{speedLabel(k)}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>Retry on network errors</span>
+              <small>Wait a little longer each time, then try again on its own</small>
+            </div>
+            <select
+              className={styles.select}
+              value={settings.max_retries}
+              onChange={(e) => save({ ...settings, max_retries: Number(e.currentTarget.value) })}
+              aria-label="Retries"
+            >
+              {RETRIES.map((n) => (
+                <option key={n} value={n}>{n === 0 ? "Never" : `Up to ${n}×`}</option>
               ))}
             </select>
           </div>

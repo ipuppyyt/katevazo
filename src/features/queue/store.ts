@@ -13,6 +13,8 @@ export interface QueueItem {
 }
 
 export interface Job extends DownloadUpdate {
+  /** When a scheduled download is due to start, in milliseconds since the epoch. */
+  scheduledFor: number | null;
   title: string;
   label: string;
   thumbnail: string | null;
@@ -47,6 +49,7 @@ function describe(o: DownloadOptions): string {
 
 const blank = (u: DownloadUpdate): Job => ({
   ...u,
+  scheduledFor: null,
   title: "…",
   label: "",
   thumbnail: null,
@@ -57,7 +60,12 @@ export const useQueue = create<QueueState>((set) => ({
   add: async (meta, url, options, append = false) => {
     const label = describe(options);
     const id = await startDownload(url, { ...options, title: meta.title });
-    const details = { title: meta.title, label, thumbnail: meta.thumbnail };
+    const details = {
+      title: meta.title,
+      label,
+      thumbnail: meta.thumbnail,
+      scheduledFor: options.start_at ?? null,
+    };
     // Events can arrive before this resolves; keep any job `apply` already created.
     set((s) =>
       s.jobs.some((j) => j.id === id)

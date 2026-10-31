@@ -6,6 +6,7 @@
 use std::{
     collections::HashMap,
     path::PathBuf,
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
     sync::{
         Arc, Mutex,
         atomic::{AtomicU64, Ordering},
@@ -80,6 +81,8 @@ struct Entry {
     child: Option<CommandChild>,
     /// Survives pauses so the progress bar never moves backwards.
     tracker: Tracker,
+    /// Automatic retries used so far; a manual retry starts the count again.
+    attempts: u32,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
@@ -227,6 +230,12 @@ pub struct Options {
     /// Speed cap in KiB/s from the settings; `None` is unlimited.
     #[serde(skip)]
     pub speed_limit_kbps: Option<u32>,
+    /// How often to retry on its own after a network problem, from the settings.
+    #[serde(skip)]
+    pub max_retries: u32,
+    /// Wait until this time (milliseconds since the Unix epoch) before starting.
+    #[serde(default)]
+    pub start_at: Option<i64>,
     /// Overrides the default Downloads folder.
     pub dir: Option<String>,
     /// Display title recorded in history.
@@ -536,6 +545,7 @@ pub async fn start_download(
     options.embed_thumbnail = prefs.embed_thumbnail;
     options.filename_template = prefs.filename_template.clone();
     options.speed_limit_kbps = prefs.speed_limit_kbps;
+    options.max_retries = prefs.max_retries;
     let out_dir: PathBuf = match options.dir.clone().or(prefs.download_dir) {
         Some(d) => PathBuf::from(d),
         None => app.path().download_dir().map_err(|e| e.to_string())?,
@@ -552,6 +562,7 @@ pub async fn start_download(
             alive: true,
             child: None,
             tracker: Tracker::default(),
+            attempts: 0,
         },
     );
     emit(&app, Update::new(&id, Status::Queued));
@@ -564,37 +575,130 @@ fn spawn_task(app: &AppHandle, id: String) {
     tauri::async_runtime::spawn(async move { drive(&app, &id).await });
 }
 
-/// Waits for a free slot, then runs the job unless it was paused or cancelled meanwhile.
-async fn drive(app: &AppHandle, id: &str) {
-    let state = app.state::<DownloadState>();
-    let Ok(_permit) = state.slots.acquire().await else {
-        return;
-    };
-
-    let spec = {
-        let mut jobs = state.jobs.lock().unwrap();
-        let Some(entry) = jobs.get_mut(id) else {
-            return;
-        };
-        match entry.desired {
-            Desired::Run => entry.spec.clone(),
-            Desired::Pause => {
-                entry.alive = false;
-                let pct = entry.tracker.overall;
-                drop(jobs);
-                return emit(app, Update::new(id, Status::Paused).with_percent(pct));
-            }
-            Desired::Cancel => {
-                jobs.remove(id);
-                drop(jobs);
-                return emit(app, Update::new(id, Status::Cancelled));
-            }
-        }
-    };
-    run_job(app, &state, id, &spec).await;
+/// What happened to one attempt at a job.
+enum Outcome {
+    /// Done, failed for good, paused or cancelled; the UI has been told.
+    Finished,
+    /// Failed in a way that may pass; try again after `delay`.
+    Retry { delay: Duration, message: String, attempt: u32 },
 }
 
-async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) {
+fn now_ms() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |d| d.as_millis() as i64)
+}
+
+/// Returns the job's spec while it should still run. A job that was paused or cancelled in
+/// the meantime is settled here (the UI is told) and yields `None`.
+fn spec_if_wanted(app: &AppHandle, id: &str) -> Option<Arc<Spec>> {
+    let state = app.state::<DownloadState>();
+    let mut jobs = state.jobs.lock().unwrap();
+    let entry = jobs.get_mut(id)?;
+    match entry.desired {
+        Desired::Run => Some(entry.spec.clone()),
+        Desired::Pause => {
+            entry.alive = false;
+            let pct = entry.tracker.overall;
+            drop(jobs);
+            emit(app, Update::new(id, Status::Paused).with_percent(pct));
+            None
+        }
+        Desired::Cancel => {
+            jobs.remove(id);
+            drop(jobs);
+            emit(app, Update::new(id, Status::Cancelled));
+            None
+        }
+    }
+}
+
+/// Sleeps for `total`; false if the job was paused or cancelled while it waited.
+async fn wait_or_stop(app: &AppHandle, id: &str, total: Duration) -> bool {
+    let deadline = Instant::now() + total;
+    loop {
+        if spec_if_wanted(app, id).is_none() {
+            return false;
+        }
+        let left = deadline.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            return true;
+        }
+        tokio::time::sleep(left.min(Duration::from_millis(500))).await;
+    }
+}
+
+/// Waits for the scheduled time and a free slot, then runs the job, retrying after
+/// network problems, unless it was paused or cancelled meanwhile.
+async fn drive(app: &AppHandle, id: &str) {
+    let state = app.state::<DownloadState>();
+    let start_at = state.jobs.lock().unwrap().get(id).and_then(|e| e.spec.options.start_at);
+    if let Some(at) = start_at {
+        let wait = Duration::from_millis((at - now_ms()).max(0) as u64);
+        if !wait.is_zero() && !wait_or_stop(app, id, wait).await {
+            return;
+        }
+    }
+    loop {
+        let Ok(permit) = state.slots.acquire().await else {
+            return;
+        };
+        let Some(spec) = spec_if_wanted(app, id) else {
+            return;
+        };
+        let outcome = run_job(app, &state, id, &spec).await;
+        // Free the slot while waiting to retry so other downloads can use it.
+        drop(permit);
+        let Outcome::Retry { delay, message, attempt } = outcome else {
+            return;
+        };
+        let pct = state.jobs.lock().unwrap().get(id).map_or(0.0, |e| e.tracker.overall);
+        let mut u = Update::new(id, Status::Queued).with_percent(pct);
+        u.error = Some(format!(
+            "{message} Retrying in {}s (attempt {attempt} of {})…",
+            delay.as_secs(),
+            spec.options.max_retries
+        ));
+        emit(app, u);
+        if !wait_or_stop(app, id, delay).await {
+            return;
+        }
+    }
+}
+
+/// Network hiccups and server errors are worth another try; a private or removed video is not.
+fn is_transient(message: &str) -> bool {
+    let m = message.to_lowercase();
+    if m.contains("unavailable") || m.contains("private") || m.contains("sign in") {
+        return false;
+    }
+    [
+        "timed out",
+        "timeout",
+        "connection",
+        "reset by peer",
+        "temporar",
+        "http error 5",
+        "http error 429",
+        "too many requests",
+        "ssl",
+        "remote end closed",
+        "network",
+        "incomplete",
+        "unable to download",
+        "failed to resolve",
+        "getaddrinfo",
+    ]
+    .iter()
+    .any(|p| m.contains(p))
+}
+
+/// 5 s, 15 s, 45 s, then capped at two minutes.
+fn retry_delay(attempt: u32) -> Duration {
+    Duration::from_secs((5 * 3u64.saturating_pow(attempt.saturating_sub(1))).min(120))
+}
+
+async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) -> Outcome {
     let args = build_args(
         &spec.options,
         &spec.out_dir.to_string_lossy().replace('\\', "/"),
@@ -605,7 +709,10 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
         crate::ytdlp::command(app).and_then(|c| c.args(args).spawn().map_err(|e| e.to_string()));
     let (mut rx, child) = match spawned {
         Ok(v) => v,
-        Err(e) => return finish_error(app, state, id, e),
+        Err(e) => {
+            finish_error(app, state, id, e);
+            return Outcome::Finished;
+        }
     };
 
     {
@@ -690,9 +797,19 @@ async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) 
             } else {
                 last_err
             };
+            let retry = state.jobs.lock().unwrap().get_mut(id).and_then(|e| {
+                (e.attempts < spec.options.max_retries && is_transient(&msg)).then(|| {
+                    e.attempts += 1;
+                    e.attempts
+                })
+            });
+            if let Some(attempt) = retry {
+                return Outcome::Retry { delay: retry_delay(attempt), message: msg, attempt };
+            }
             finish_error(app, state, id, msg);
         }
     }
+    Outcome::Finished
 }
 
 /// Marks the job failed but keeps it, so the UI can offer Retry (resume).
@@ -788,6 +905,7 @@ pub fn resume_download(app: AppHandle, state: State<'_, DownloadState>, id: Stri
             return;
         };
         entry.desired = Desired::Run;
+        entry.attempts = 0;
         // If a task is still waiting for a slot it will simply continue.
         !std::mem::replace(&mut entry.alive, true)
     };
@@ -834,6 +952,8 @@ mod tests {
             embed_thumbnail: false,
             filename_template: String::new(),
             speed_limit_kbps: None,
+            max_retries: 0,
+            start_at: None,
             dir: None,
             title: None,
         }
@@ -1015,6 +1135,22 @@ mod tests {
         assert!(is_subtitle_file("C:/x/Title [id].en.vtt"));
         assert!(is_subtitle_file("Title.en.vtt.part"));
         assert!(!is_subtitle_file("Title [id].f137.mp4"));
+    }
+
+    #[test]
+    fn retries_only_network_problems() {
+        assert!(is_transient("ERROR: unable to download video data: HTTP Error 503"));
+        assert!(is_transient("<urlopen error [Errno 11001] getaddrinfo failed>"));
+        assert!(is_transient("Read timed out."));
+        assert!(!is_transient("ERROR: Video unavailable. This video is private"));
+        assert!(!is_transient("Sign in to confirm you are not a bot"));
+        assert!(!is_transient("Requested format is not available"));
+    }
+
+    #[test]
+    fn retry_delay_grows_then_caps() {
+        let secs: Vec<u64> = (1..=6).map(|n| retry_delay(n).as_secs()).collect();
+        assert_eq!(secs, [5, 15, 45, 120, 120, 120]);
     }
 
     #[test]
