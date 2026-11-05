@@ -39,9 +39,19 @@ work too.
 
 ## Install
 
-Pre-built installers will be published on the
-[Releases](https://github.com/ipuppyyt/katevazo/releases) page once the first version
-is tagged. Until then, [build it from source](#build-from-source).
+Download the installer for your system from the
+[Releases](https://github.com/ipuppyyt/katevazo/releases/latest) page, or
+[build it from source](#build-from-source).
+
+The installers are not code-signed yet, so your system may warn on first launch:
+
+- **Windows:** SmartScreen shows "Windows protected your PC". Choose **More info**, then **Run anyway**.
+- **macOS:** the app is not notarized. If it will not open, go to **System Settings → Privacy & Security** and
+  choose **Open Anyway**. If macOS says the app is "damaged", run this once in Terminal and open it again:
+
+  ```sh
+  xattr -cr /Applications/Katevazo.app
+  ```
 
 ## Build from source
 

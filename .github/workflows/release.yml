@@ -55,7 +55,11 @@ jobs:
             fi
             echo "Signing enabled"
           else
-            echo "No Apple certificate configured; building unsigned"
+            # Apple Silicon refuses to open a downloaded app that has no signature at all and
+            # calls it damaged. An ad-hoc signature ("-") seals the bundle and its sidecars, so
+            # the message becomes the usual unidentified-developer one that can be bypassed.
+            echo "APPLE_SIGNING_IDENTITY=-" >> "$GITHUB_ENV"
+            echo "No Apple certificate configured; signing ad hoc"
           fi
       - name: Code signing (Windows)
         id: winsign
@@ -87,3 +91,11 @@ jobs:
           releaseName: "Katevazo ${{ github.ref_name }}"
           releaseDraft: true
           args: ${{ steps.winsign.outputs.args }}
+      - name: Check the macOS signature
+        if: runner.os == 'macOS'
+        run: |
+          for app in src-tauri/target/*/release/bundle/macos/*.app src-tauri/target/release/bundle/macos/*.app; do
+            [ -d "$app" ] || continue
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dv "$app" 2>&1 | grep -E "Identifier|Signature|TeamIdentifier"
+          done
