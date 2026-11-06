@@ -104,6 +104,11 @@ function shareItem(row) {
   return named ?? items[items.length >= 5 ? 3 : 2];
 }
 
+/** Swaps every icon in a button for ours. A button may stack several (one shown on hover), so each keeps its own classes. */
+function setIcons(button, d) {
+  for (const old of button.querySelectorAll("svg")) old.replaceWith(makeIcon(d, old));
+}
+
 /** A copy of the Share button beside Like and Comment, with our icon. */
 function addToActionRow(row) {
   if (row.querySelector(`[${MARK}]`)) return;
@@ -123,18 +128,14 @@ function addToActionRow(row) {
   button.setAttribute(MARK, "");
   button.setAttribute("aria-label", LABEL);
   button.title = LABEL;
-  const mine = makeIcon(ICON, share);
-  // Some buttons hold more than one icon; keep only ours.
-  const [first, ...others] = button.querySelectorAll("svg");
-  first.replaceWith(mine);
-  others.forEach((other) => other.remove());
+  setIcons(button, ICON);
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     const current = postFor(row);
     if (current && !isPrivate(current.user)) {
       send(current.url, (done) => {
-        button.querySelector("svg").replaceWith(makeIcon(done ? CHECK : ICON, share));
+        setIcons(button, done ? CHECK : ICON);
         button.title = done ? SENT : LABEL;
       });
     }
