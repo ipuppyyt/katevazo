@@ -128,7 +128,13 @@ function addToActionRow(row) {
       });
     }
   });
-  original.after(button);
+  // Share's own count may be a separate element just after it; go past that, so the count stays
+  // beside Share and not beside this button.
+  let anchor = original;
+  while (anchor.nextElementSibling && !anchor.nextElementSibling.querySelector("svg") && anchor.nextElementSibling.textContent.trim()) {
+    anchor = anchor.nextElementSibling;
+  }
+  anchor.after(button);
 }
 
 function sync() {
