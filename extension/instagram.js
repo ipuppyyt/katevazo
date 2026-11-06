@@ -107,6 +107,11 @@ function addToActionRow(row) {
   if (!post || isPrivate(post.user) || !isVideo(row, post)) return;
 
   const button = original.cloneNode(true);
+  // The copy would repeat Share's count (or any other text), which this button has no use for.
+  for (const node of [...button.querySelectorAll("*")]) {
+    if (node.isConnected && !node.closest("svg") && !node.querySelector("svg") && node.textContent.trim()) node.remove();
+  }
+  for (const text of [...button.childNodes]) if (text.nodeType === Node.TEXT_NODE) text.remove();
   button.setAttribute(MARK, "");
   button.setAttribute("aria-label", LABEL);
   button.title = LABEL;
