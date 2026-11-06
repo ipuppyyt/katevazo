@@ -25,6 +25,10 @@ operating system hands to the app.
   It skips accounts that Instagram marks as private. The page script reads only the address of
   the post, and only when you click the button.
 
+- It uses the `nativeMessaging` permission only to ask the Katevazo app on your own computer
+  whether it is installed. The app answers with its version number; nothing else is exchanged,
+  and nothing leaves your computer.
+
 ## What it does not do
 
 - It does not collect browsing history, page content, account details or any other personal

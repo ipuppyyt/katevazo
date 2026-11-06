@@ -5,7 +5,8 @@
   "description": "Send the page you are on, or a link, to the Katevazo app.",
   "permissions": [
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "nativeMessaging"
   ],
   "background": {
     "service_worker": "background.js"

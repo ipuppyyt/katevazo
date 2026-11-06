@@ -11,6 +11,7 @@
   --accent: #007aff;
   --accent-contrast: #ffffff;
   --success: #28c840;
+  --danger: #ff3b30;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -24,6 +25,7 @@
     --field-border: rgba(255, 255, 255, 0.14);
     --accent: #0a84ff;
     --success: #30d158;
+    --danger: #ff453a;
   }
 }
 
@@ -55,6 +57,35 @@ h1 {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
+  line-height: 1.2;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  opacity: 0.5;
+}
+
+.status.on::before {
+  background: var(--success);
+  opacity: 1;
+}
+
+.status.off::before {
+  background: var(--danger);
+  opacity: 1;
 }
 
 p {
@@ -159,23 +190,13 @@ p {
   color: var(--text-muted);
 }
 
-.note[hidden],
-footer[hidden] {
+.note .primary {
+  margin-top: 10px;
+}
+
+.page[hidden],
+.primary[hidden],
+.note[hidden] {
   display: none;
 }
 
-footer {
-  margin-top: 12px;
-  color: var(--text-muted);
-  font-size: 12px;
-  text-align: center;
-}
-
-a:not(.secondary) {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-a:not(.secondary):hover {
-  text-decoration: underline;
-}

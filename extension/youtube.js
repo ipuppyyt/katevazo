@@ -2,7 +2,6 @@
 // to the action buttons beside a Short, between Share and Remix.
 // Clicking it hands the video you are watching to the Katevazo app; nothing downloads until
 // you press Download there.
-const api = globalThis.browser ?? globalThis.chrome;
 
 const ID = "katevazo-download";
 const LABEL = "Download with Katevazo";
@@ -54,11 +53,9 @@ function hideTip() {
   if (tip) tip.dataset.visible = "false";
 }
 
-function send(button) {
+async function send(button) {
   const url = currentLink();
-  if (!url) return;
-  api.runtime.sendMessage({ type: "send", url });
-    globalThis.katevazoWatchOpen?.();
+  if (!url || !(await globalThis.katevazoSend(url))) return;
   setIcon(button, CHECK);
   button.setAttribute("aria-label", SENT);
   showTip(button, SENT);
@@ -104,11 +101,9 @@ function makeShortButton(share) {
   button.removeAttribute("title");
   path.setAttribute("d", ICON);
   label.textContent = "Download";
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     const url = shortLink();
-    if (!url) return;
-    api.runtime.sendMessage({ type: "send", url });
-    globalThis.katevazoWatchOpen?.();
+    if (!url || !(await globalThis.katevazoSend(url))) return;
     path.setAttribute("d", CHECK);
     label.textContent = "Sent";
     window.setTimeout(() => {

@@ -11,7 +11,7 @@ adds a Download button between Share and Remix.
 On Instagram it adds a download icon after Share on reels and video posts. It appears only for public accounts: where Instagram's page data marks the
 account as private, nothing is added. That check is best effort, since the data is most reliable right after a page loads.
 
-The toolbar button opens a small popup with the page you are on and a Send button. A web page cannot tell whether the app is installed, so if the app does not open (the window keeps focus for a couple of seconds), the popup, and the YouTube and Instagram buttons, offer a link to get Katevazo.
+The toolbar button opens a small popup that first checks the Katevazo app is installed, then shows the page you are on with a Send button. The check uses native messaging: the app registers itself with your browsers each time it starts, so open it once after installing or updating. If the app is not found, the popup, the YouTube and Instagram buttons and the right-click menu point you to the download.
 
 It needs Katevazo to be installed, since that registers the `katevazo://` address.
 

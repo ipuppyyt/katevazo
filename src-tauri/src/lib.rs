@@ -8,6 +8,7 @@ mod download;
 mod files;
 mod history;
 mod link;
+pub mod native_host;
 mod notify;
 mod settings;
 mod subscriptions;
@@ -34,6 +35,10 @@ pub fn run() {
             download::set_concurrency(app.handle(), settings::load(app.handle()).max_concurrent as usize);
             subscriptions::start_checking(app.handle().clone());
             tray::setup(app.handle())?;
+            // Lets the browser extension find out that the app is installed.
+            if let Ok(dir) = app.path().app_local_data_dir() {
+                std::thread::spawn(move || native_host::register(&dir));
+            }
 
             let handle = app.handle().clone();
             app.deep_link().on_open_url(move |event| {

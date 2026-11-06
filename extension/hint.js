@@ -1,7 +1,8 @@
-// A small card shown on a page when the app did not open after you pressed a download button
-// there. A web page cannot tell whether the app is installed, so this goes by what happens
-// next: when Katevazo opens, this window loses focus. If it kept focus, say so.
+// Sends a link to the Katevazo app for the buttons added to a page. The background script
+// checks that the app is installed; when it is not, a small card offers the download.
 (() => {
+  const api = globalThis.browser ?? globalThis.chrome;
+
   const SHEET = `
     :host { all: initial; }
     .card {
@@ -40,10 +41,10 @@
     card.className = "card";
     card.setAttribute("role", "status");
 
-    const title = Object.assign(document.createElement("p"), { className: "title", textContent: "Katevazo didn't open" });
+    const title = Object.assign(document.createElement("p"), { className: "title", textContent: "Katevazo isn't installed" });
     const text = Object.assign(document.createElement("p"), {
       className: "text",
-      textContent: "If the app isn't installed yet, get it, then press the button again.",
+      textContent: "Get the app (or update it to the latest version), then press the button again.",
     });
     const row = document.createElement("div");
     row.className = "row";
@@ -62,18 +63,17 @@
     window.setTimeout(close, 15000);
   }
 
-  /** Call right after sending a link; shows the card if this window never loses focus. */
-  globalThis.katevazoWatchOpen = () => {
-    let left = false;
-    const note = () => {
-      left = true;
-    };
-    window.addEventListener("blur", note, { once: true });
-    document.addEventListener("visibilitychange", note, { once: true });
-    window.setTimeout(() => {
-      window.removeEventListener("blur", note);
-      document.removeEventListener("visibilitychange", note);
-      if (!left) show();
-    }, 2500);
+  /** Sends a link to the app. Resolves to false, after showing the card, when it is not installed. */
+  globalThis.katevazoSend = async (url) => {
+    try {
+      const reply = await api.runtime.sendMessage({ type: "send", url });
+      if (reply?.installed === false) {
+        show();
+        return false;
+      }
+    } catch {
+      // The extension was reloaded; the page needs a refresh, nothing to add here.
+    }
+    return true;
   };
 })();

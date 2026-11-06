@@ -9,6 +9,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Settings lists the supported browsers installed on your computer (Chrome, Edge, Brave, Vivaldi, Arc, Chromium; Opera and Firefox are shown as not available yet) with a button that opens the Katevazo extension's store page in that browser.  It also shows when the extension is already installed.
+- The app now answers the browser extension when it asks whether Katevazo is installed, and registers itself with Chrome, Edge, Brave, Chromium and Firefox each time it starts to allow that.
 
 ## [0.5.2] - 2026-11-06
 

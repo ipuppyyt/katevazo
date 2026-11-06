@@ -1,7 +1,6 @@
 // Adds a Katevazo download button beside Share on Instagram reels and video posts. It appears only
 // for public accounts: nothing is added where Instagram marks the account as private. Clicking it
 // hands the link to the Katevazo app; nothing downloads until you press Download there.
-const api = globalThis.browser ?? globalThis.chrome;
 
 const LABEL = "Download with Katevazo";
 const SENT = "Sent to Katevazo";
@@ -89,9 +88,8 @@ function authorIn(root) {
   return link?.getAttribute("href")?.match(/^\/([\w.]+)\/$/)?.[1] ?? null;
 }
 
-function send(url, swap) {
-  api.runtime.sendMessage({ type: "send", url });
-  globalThis.katevazoWatchOpen?.();
+async function send(url, swap) {
+  if (!(await globalThis.katevazoSend(url))) return;
   swap(true);
   window.setTimeout(() => swap(false), 1800);
 }
