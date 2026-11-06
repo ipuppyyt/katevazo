@@ -8,8 +8,8 @@ On YouTube it also adds a download button to the player's control bar, next to S
 Clicking it sends the video you are watching (without any playlist) to the app. On Shorts it
 adds a Download button between Share and Remix.
 
-On Instagram it adds a download icon after Share on reels and video posts.Instagram's page data marks the account as private, nothing is added. That check is best
-effort, since the data is most reliable right after a page loads.
+On Instagram it adds a download icon after Share on reels and video posts. It appears only for public accounts: where Instagram's page data marks the
+account as private, nothing is added. That check is best effort, since the data is most reliable right after a page loads.
 
 It needs Katevazo to be installed, since that registers the `katevazo://` address.
 
