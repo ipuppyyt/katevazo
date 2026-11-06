@@ -18,9 +18,9 @@ operating system hands to the app.
   `activeTab` permission, and passes it to the app.
 - When you use a right-click menu entry, it passes that page or link to the app. This uses
   the `contextMenus` permission.
-- On `www.youtube.com` watch pages it adds a download button to the video player. The page
-  script reads only the address of the video you are watching, and only when you click the
-  button.
+- On `www.youtube.com` watch pages it adds a download button to the video player, and on
+  Shorts a Download button beside Share. The page script reads only the address of the video
+  you are watching, and only when you click the button.
 
 ## What it does not do
 

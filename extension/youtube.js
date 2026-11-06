@@ -1,4 +1,5 @@
-// Adds a Katevazo download button to the YouTube player's control bar, next to Settings.
+// Adds a Katevazo download button to the YouTube player's control bar, next to Settings, and
+// to the action buttons beside a Short, between Share and Remix.
 // Clicking it hands the video you are watching to the Katevazo app; nothing downloads until
 // you press Download there.
 const api = globalThis.browser ?? globalThis.chrome;
@@ -82,6 +83,56 @@ function makeButton() {
   return button;
 }
 
+const SHORT_ID = "katevazo-short-download";
+
+/** The Short being watched; null when this is not a Shorts page. */
+function shortLink() {
+  const id = location.pathname.match(/^\/shorts\/([\w-]+)/)?.[1];
+  return id ? `https://www.youtube.com/shorts/${id}` : null;
+}
+
+/** A copy of the Share button, so it looks and sits like the others, with our icon and action. */
+function makeShortButton(share) {
+  const item = share.cloneNode(true);
+  item.id = SHORT_ID;
+  const button = item.querySelector("button");
+  const path = item.querySelector("svg path");
+  const label = item.querySelector(".ytSpecButtonShapeWithLabelLabel span");
+  if (!button || !path || !label) return null;
+  button.setAttribute("aria-label", LABEL);
+  button.removeAttribute("title");
+  path.setAttribute("d", ICON);
+  label.textContent = "Download";
+  button.addEventListener("click", () => {
+    const url = shortLink();
+    if (!url) return;
+    api.runtime.sendMessage({ type: "send", url });
+    path.setAttribute("d", CHECK);
+    label.textContent = "Sent";
+    window.setTimeout(() => {
+      path.setAttribute("d", ICON);
+      label.textContent = "Download";
+    }, 1800);
+  });
+  return item;
+}
+
+/** Adds a Download button between Share and Remix on Shorts, or removes it elsewhere. */
+function syncShorts() {
+  if (!shortLink()) {
+    document.querySelectorAll(`#${SHORT_ID}`).forEach((e) => e.remove());
+    return;
+  }
+  for (const bar of document.querySelectorAll("reel-action-bar-view-model")) {
+    if (bar.querySelector(`#${SHORT_ID}`)) continue;
+    const items = [...bar.children];
+    // Like, comments, Share, then Remix: Share is the third.
+    if (items[0]?.tagName !== "LIKE-BUTTON-VIEW-MODEL" || !items[2]) continue;
+    const button = makeShortButton(items[2]);
+    if (button) items[2].after(button);
+  }
+}
+
 /** Puts the button in the control bar of the main player, or removes it where it does not belong. */
 function sync() {
   const existing = document.getElementById(ID);
@@ -106,7 +157,12 @@ new MutationObserver(() => {
   window.requestAnimationFrame(() => {
     queued = false;
     sync();
+    syncShorts();
   });
 }).observe(document.documentElement, { childList: true, subtree: true });
-document.addEventListener("yt-navigate-finish", sync);
+document.addEventListener("yt-navigate-finish", () => {
+  sync();
+  syncShorts();
+});
 sync();
+syncShorts();

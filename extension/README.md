@@ -5,7 +5,8 @@ Katevazo app. Katevazo opens with the link ready to fetch; nothing downloads unt
 press Download.
 
 On YouTube it also adds a download button to the player's control bar, next to Settings.
-Clicking it sends the video you are watching (without any playlist) to the app.
+Clicking it sends the video you are watching (without any playlist) to the app. On Shorts it
+adds a Download button between Share and Remix.
 
 It needs Katevazo to be installed, since that registers the `katevazo://` address.
 
