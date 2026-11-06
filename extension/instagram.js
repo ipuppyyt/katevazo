@@ -97,10 +97,17 @@ function send(url, swap) {
 
 const iconItems = (row) => [...row.children].filter((c) => c.querySelector("svg[aria-label]"));
 
+/** The Share item: found by its label, else by position (before Save; a column also holds Repost). */
+function shareItem(row) {
+  const items = iconItems(row);
+  const named = items.find((i) => /^(share|send)/i.test(i.querySelector("svg[aria-label]")?.getAttribute("aria-label") ?? ""));
+  return named ?? items[items.length >= 5 ? 3 : 2];
+}
+
 /** A copy of the Share button beside Like and Comment, with our icon. */
 function addToActionRow(row) {
   if (row.querySelector(`[${MARK}]`)) return;
-  const original = iconItems(row)[2];
+  const original = shareItem(row);
   const share = original?.querySelector("svg[aria-label]");
   if (!share || !original) return;
   const post = postFor(row);
@@ -111,7 +118,8 @@ function addToActionRow(row) {
   for (const node of [...button.querySelectorAll("*")]) {
     if (node.isConnected && !node.closest("svg") && !node.querySelector("svg") && node.textContent.trim()) node.remove();
   }
-  for (const text of [...button.childNodes]) if (text.nodeType === Node.TEXT_NODE) text.remove();
+  const walker = document.createTreeWalker(button, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) n.nodeValue = "";
   button.setAttribute(MARK, "");
   button.setAttribute("aria-label", LABEL);
   button.title = LABEL;
