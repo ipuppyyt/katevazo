@@ -131,6 +131,11 @@ export const zh: Partial<Record<Key, string>> = {
   "set.updating": "正在更新…",
   "set.checkUpdates": "检查更新",
   "set.engineHint": "网站经常变化。如果下载开始失败，更新 yt-dlp 通常能解决。",
+  "set.extension": "浏览器扩展",
+  "set.extensionHint": "从浏览器将视频发送到 Katevazo。点击“获取扩展”会在该浏览器中打开商店页面。",
+  "set.extensionGet": "获取扩展",
+  "set.extensionSoon": "暂不可用",
+  "set.extensionNone": "在这台电脑上没有找到受支持的浏览器。",
 
   "trim.label": "裁剪",
   "trim.start": "开始时间",

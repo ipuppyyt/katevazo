@@ -134,6 +134,11 @@ export const it: Partial<Record<Key, string>> = {
   "set.updating": "Aggiornamento…",
   "set.checkUpdates": "Cerca aggiornamenti",
   "set.engineHint": "I siti cambiano spesso. Se i download iniziano a fallire, aggiornare yt-dlp di solito risolve.",
+  "set.extension": "Estensione del browser",
+  "set.extensionHint": "Invia i video a Katevazo dal browser. Ottieni estensione apre la pagina dello store in quel browser.",
+  "set.extensionGet": "Ottieni estensione",
+  "set.extensionSoon": "Non ancora disponibile",
+  "set.extensionNone": "Nessun browser supportato trovato su questo computer.",
 
   "trim.label": "Taglia",
   "trim.start": "Ora di inizio",

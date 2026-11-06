@@ -8,11 +8,14 @@ import {
   archiveSize,
   clearArchive,
   getSettings,
+  installExtension,
+  listBrowsers,
   previewTemplate,
   setSettings,
   TEMPLATE_FIELDS,
   updateYtdlp,
   ytdlpVersion,
+  type Browser,
   type Settings,
   type Theme,
 } from "../../lib/api";
@@ -57,6 +60,7 @@ export function SettingsView() {
   const [proxyError, setProxyError] = useState<string | null>(null);
   const [remembered, setRemembered] = useState(0);
   const [appVersion, setAppVersion] = useState("");
+  const [browsers, setBrowsers] = useState<Browser[] | null>(null);
   const setWelcome = useApp((s) => s.setWelcome);
 
   useEffect(() => {
@@ -67,6 +71,7 @@ export function SettingsView() {
         setProxy(s.proxy);
       }).catch((e) => setError(String(e)));
     archiveSize().then(setRemembered).catch(() => {});
+    listBrowsers().then(setBrowsers).catch(() => setBrowsers([]));
     getVersion().then(setAppVersion).catch(() => {});
     ytdlpVersion().then(setVersion).catch(() => setVersion(t("set.unavailable")));
   }, []);
@@ -80,6 +85,15 @@ export function SettingsView() {
       setError(String(e));
     } finally {
       setUpdating(false);
+    }
+  }
+
+  async function getExtension(id: string) {
+    setError(null);
+    try {
+      await installExtension(id);
+    } catch (e) {
+      setError(String(e));
     }
   }
 
@@ -410,6 +424,33 @@ export function SettingsView() {
             />
           </div>
         </div>
+      </section>
+      <section>
+        <h2 className={styles.heading}>{t("set.extension")}</h2>
+        <div className={styles.group}>
+          {browsers?.length === 0 && (
+            <div className={styles.row}>
+              <div className={styles.label}>
+                <small>{t("set.extensionNone")}</small>
+              </div>
+            </div>
+          )}
+          {browsers?.map((b) => (
+            <div className={styles.row} key={b.id}>
+              <div className={styles.label}>
+                <span>{b.name}</span>
+              </div>
+              {b.available ? (
+                <button className={styles.tinted} onClick={() => getExtension(b.id)}>
+                  {t("set.extensionGet")}
+                </button>
+              ) : (
+                <small>{t("set.extensionSoon")}</small>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className={styles.footnote}>{t("set.extensionHint")}</p>
       </section>
       <section>
         <h2 className={styles.heading}>{t("set.engine")}</h2>

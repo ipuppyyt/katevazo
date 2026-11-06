@@ -245,6 +245,19 @@ export function formatEta(seconds: number): string {
 export const archiveSize = () => invoke<number>("archive_size");
 export const clearArchive = () => invoke<void>("clear_archive");
 
+export interface Browser {
+  id: string;
+  name: string;
+  /** Whether the extension can be installed in this browser today. */
+  available: boolean;
+}
+
+/** The supported browsers installed on this computer. */
+export const listBrowsers = () => invoke<Browser[]>("list_browsers");
+
+/** Opens the extension's store page in the given browser. */
+export const installExtension = (id: string) => invoke<void>("install_extension", { id });
+
 export const ytdlpVersion = () => invoke<string>("ytdlp_version");
 export const updateYtdlp = () => invoke<string>("update_ytdlp");
 

@@ -133,6 +133,11 @@ export const en = {
   "set.updating": "Updating…",
   "set.checkUpdates": "Check for Updates",
   "set.engineHint": "Sites change often. If downloads start failing, updating yt-dlp usually fixes it.",
+  "set.extension": "Browser extension",
+  "set.extensionHint": "Send videos to Katevazo from your browser. Get extension opens the store page in that browser.",
+  "set.extensionGet": "Get extension",
+  "set.extensionSoon": "Not available yet",
+  "set.extensionNone": "No supported browser was found on this computer.",
 
   "trim.label": "Trim",
   "trim.start": "Start time",

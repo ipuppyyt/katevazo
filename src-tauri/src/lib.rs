@@ -2,6 +2,7 @@ use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 mod archive;
+mod browsers;
 mod convert;
 mod download;
 mod files;
@@ -63,6 +64,8 @@ pub fn run() {
             ytdlp::fetch_metadata,
             ytdlp::fetch_playlist,
             link::take_pending_links,
+            browsers::list_browsers,
+            browsers::install_extension,
             files::open_file,
             files::reveal_file,
             ytdlp::update_ytdlp,

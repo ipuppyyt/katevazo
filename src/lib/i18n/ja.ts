@@ -131,6 +131,11 @@ export const ja: Partial<Record<Key, string>> = {
   "set.updating": "更新中…",
   "set.checkUpdates": "アップデートを確認",
   "set.engineHint": "サイトはよく変わります。ダウンロードが失敗するときは、yt-dlp を更新すると直ることが多いです。",
+  "set.extension": "ブラウザ拡張機能",
+  "set.extensionHint": "ブラウザから Katevazo に動画を送ります。「拡張機能を入手」を押すと、そのブラウザでストアのページが開きます。",
+  "set.extensionGet": "拡張機能を入手",
+  "set.extensionSoon": "まだ利用できません",
+  "set.extensionNone": "対応しているブラウザがこのコンピューターに見つかりません。",
 
   "trim.label": "トリミング",
   "trim.start": "開始時刻",
