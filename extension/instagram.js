@@ -1,4 +1,4 @@
-// Adds a Katevazo download button to Instagram posts and reels, and to the posts on a profile.
+// Adds a Katevazo download button beside Share on Instagram video posts and reels, and on the reels in a profile's Reels tab.
 // It appears only on public accounts: nothing is added where Instagram marks the account as
 // private. Clicking it hands the post's link to the Katevazo app; nothing downloads until you
 // press Download there.
@@ -68,6 +68,18 @@ function linkOf(path) {
   return { user: m[1] ?? null, url: `https://www.instagram.com/${m[2] === "reels" ? "reel" : m[2]}/${m[3]}/` };
 }
 
+/** Whether this is the Reels tab of a profile. */
+function onReelsTab() {
+  return /^/[w.]+/reels/?$/.test(location.pathname);
+}
+
+/** Whether the post an action row belongs to is a video: a reel, or a post with a video in it. */
+function isVideo(row, post) {
+  if (//(reel|tv)//.test(post.url)) return true;
+  const scope = row.closest("article, [role=dialog], main") ?? document;
+  return !!scope.querySelector("video");
+}
+
 /** The user whose profile page this is, or null elsewhere. */
 function profileUser() {
   const m = location.pathname.match(/^\/([\w.]+)\/?(?:reels\/?|tagged\/?)?$/);
@@ -102,7 +114,7 @@ function addToActionRow(row) {
   const original = share?.closest("[role=button]");
   if (!share || !original) return;
   const post = postFor(row);
-  if (!post || isPrivate(post.user)) return;
+  if (!post || isPrivate(post.user) || !isVideo(row, post)) return;
 
   const button = original.cloneNode(true);
   button.setAttribute(MARK, "");
@@ -124,9 +136,9 @@ function addToActionRow(row) {
   original.after(button);
 }
 
-/** A small button over each post on a public profile, shown when you point at it. */
+/** A small button over each reel on the Reels tab of a public profile, shown when you point at it. */
 function addToGrid() {
-  const user = profileUser();
+  const user = onReelsTab() ? profileUser() : null;
   for (const old of document.querySelectorAll(`.katevazo-ig-tile`)) {
     if (!user || isPrivate(user)) old.remove();
   }
