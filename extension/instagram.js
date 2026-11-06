@@ -124,7 +124,10 @@ function addToActionRow(row) {
   button.setAttribute("aria-label", LABEL);
   button.title = LABEL;
   const mine = makeIcon(ICON, share);
-  button.querySelector("svg").replaceWith(mine);
+  // Some buttons hold more than one icon; keep only ours.
+  const [first, ...others] = button.querySelectorAll("svg");
+  first.replaceWith(mine);
+  others.forEach((other) => other.remove());
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
