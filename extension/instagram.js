@@ -1,7 +1,6 @@
-// Adds a Katevazo download button beside Share on Instagram video posts and reels, and on the reels in a profile's Reels tab.
-// It appears only on public accounts: nothing is added where Instagram marks the account as
-// private. Clicking it hands the post's link to the Katevazo app; nothing downloads until you
-// press Download there.
+// Adds a Katevazo download button beside Share on Instagram reels and video posts. It appears only
+// for public accounts: nothing is added where Instagram marks the account as private. Clicking it
+// hands the link to the Katevazo app; nothing downloads until you press Download there.
 const api = globalThis.browser ?? globalThis.chrome;
 
 const LABEL = "Download with Katevazo";
@@ -68,22 +67,11 @@ function linkOf(path) {
   return { user: m[1] ?? null, url: `https://www.instagram.com/${m[2] === "reels" ? "reel" : m[2]}/${m[3]}/` };
 }
 
-/** Whether this is the Reels tab of a profile. */
-function onReelsTab() {
-  return /^/[w.]+/reels/?$/.test(location.pathname);
-}
-
 /** Whether the post an action row belongs to is a video: a reel, or a post with a video in it. */
 function isVideo(row, post) {
-  if (//(reel|tv)//.test(post.url)) return true;
+  if (/\/(reel|tv)\//.test(post.url)) return true;
   const scope = row.closest("article, [role=dialog], main") ?? document;
   return !!scope.querySelector("video");
-}
-
-/** The user whose profile page this is, or null elsewhere. */
-function profileUser() {
-  const m = location.pathname.match(/^\/([\w.]+)\/?(?:reels\/?|tagged\/?)?$/);
-  return m && !["explore", "reels", "direct", "accounts", "stories"].includes(m[1]) ? m[1] : null;
 }
 
 /** The link and author for the post an element belongs to. */
@@ -107,11 +95,13 @@ function send(url, swap) {
   window.setTimeout(() => swap(false), 1800);
 }
 
+const iconItems = (row) => [...row.children].filter((c) => c.querySelector("svg[aria-label]"));
+
 /** A copy of the Share button beside Like and Comment, with our icon. */
 function addToActionRow(row) {
   if (row.querySelector(`[${MARK}]`)) return;
-  const share = row.querySelectorAll("svg[aria-label]")[2];
-  const original = share?.closest("[role=button]");
+  const original = iconItems(row)[2];
+  const share = original?.querySelector("svg[aria-label]");
   if (!share || !original) return;
   const post = postFor(row);
   if (!post || isPrivate(post.user) || !isVideo(row, post)) return;
@@ -136,39 +126,23 @@ function addToActionRow(row) {
   original.after(button);
 }
 
-/** A small button over each reel on the Reels tab of a public profile, shown when you point at it. */
-function addToGrid() {
-  const user = onReelsTab() ? profileUser() : null;
-  for (const old of document.querySelectorAll(`.katevazo-ig-tile`)) {
-    if (!user || isPrivate(user)) old.remove();
-  }
-  if (!user || isPrivate(user)) return;
-  for (const anchor of document.querySelectorAll('main a[href*="/p/"], main a[href*="/reel/"]')) {
-    const host = anchor.parentElement;
-    const post = linkOf(new URL(anchor.href).pathname);
-    if (!host || !post || host.querySelector(".katevazo-ig-tile")) continue;
-    host.classList.add("katevazo-ig-host");
-    const button = document.createElement("button");
-    button.className = "katevazo-ig-tile";
-    button.type = "button";
-    button.title = LABEL;
-    button.setAttribute("aria-label", LABEL);
-    button.append(makeIcon(ICON));
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      send(post.url, (done) => button.replaceChildren(makeIcon(done ? CHECK : ICON)));
-    });
-    host.append(button);
-  }
-}
-
 function sync() {
-  for (const section of document.querySelectorAll("section")) {
-    // The row of Like, Comment, Share and Save has four icons and hardly any text.
-    if (section.querySelectorAll("svg[aria-label]").length >= 4 && section.innerText.length < 60) addToActionRow(section);
+  // Like, Comment and Share sit side by side (a row, or a column beside a reel), each with an icon.
+  const rows = new Set();
+  for (const icon of document.querySelectorAll("svg[aria-label]")) {
+    let item = icon;
+    for (let up = 0; up < 5 && item.parentElement; up += 1) {
+      const parent = item.parentElement;
+      if (iconItems(parent).length >= 3) {
+        rows.add(parent);
+        break;
+      }
+      item = parent;
+    }
   }
-  addToGrid();
+  for (const row of rows) {
+    if (row.innerText.length < 60) addToActionRow(row);
+  }
 }
 
 // Instagram builds its pages as you move around, so keep checking.
