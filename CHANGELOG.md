@@ -6,6 +6,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-06
+
+### Fixed
+
+- On macOS the bundled yt-dlp failed to start ("Failed to load Python shared library") because of the ad hoc signing added in 0.5.1. The app now carries the entitlements it needs.
+
+### Changed
+
+- The browser extension adds a download icon after Share on Instagram reels and video posts from public accounts.
+
 ## [0.5.1] - 2026-11-06
 
 ### Fixed
@@ -113,6 +123,7 @@ First public release.
   separate streams, and it stays put across pauses.
 
 [Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.5.1...HEAD
+[0.5.2]: https://github.com/ipuppyyt/katevazo/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/ipuppyyt/katevazo/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/ipuppyyt/katevazo/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/ipuppyyt/katevazo/compare/v0.3.0...v0.4.0
