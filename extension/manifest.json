@@ -16,6 +16,7 @@
         "https://www.youtube.com/*"
       ],
       "js": [
+        "hint.js",
         "youtube.js"
       ],
       "css": [
@@ -28,6 +29,7 @@
         "https://www.instagram.com/*"
       ],
       "js": [
+        "hint.js",
         "instagram.js"
       ],
       "css": [
@@ -37,7 +39,8 @@
     }
   ],
   "action": {
-    "default_title": "Send this page to Katevazo"
+    "default_title": "Send this page to Katevazo",
+    "default_popup": "popup.html"
   },
   "icons": {
     "128": "icon.png"

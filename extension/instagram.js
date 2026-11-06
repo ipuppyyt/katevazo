@@ -91,6 +91,7 @@ function authorIn(root) {
 
 function send(url, swap) {
   api.runtime.sendMessage({ type: "send", url });
+  globalThis.katevazoWatchOpen?.();
   swap(true);
   window.setTimeout(() => swap(false), 1800);
 }

@@ -18,9 +18,9 @@ api.contextMenus.onClicked.addListener((info, tab) => {
   send(tab?.id, info.menuItemId === "link" ? info.linkUrl : (info.srcUrl ?? info.pageUrl));
 });
 
-api.action.onClicked.addListener((tab) => send(tab.id, tab.url));
-
-// The button added to the YouTube player asks for the video it sits in.
+// The popup and the buttons added to YouTube and Instagram ask for a link to be sent.
 api.runtime.onMessage.addListener((message, sender) => {
-  if (message?.type === "send" && sender.tab) send(sender.tab.id, message.url);
+  if (message?.type !== "send") return;
+  const tabId = sender.tab?.id ?? message.tabId;
+  if (tabId !== undefined) send(tabId, message.url);
 });

@@ -58,6 +58,7 @@ function send(button) {
   const url = currentLink();
   if (!url) return;
   api.runtime.sendMessage({ type: "send", url });
+    globalThis.katevazoWatchOpen?.();
   setIcon(button, CHECK);
   button.setAttribute("aria-label", SENT);
   showTip(button, SENT);
@@ -107,6 +108,7 @@ function makeShortButton(share) {
     const url = shortLink();
     if (!url) return;
     api.runtime.sendMessage({ type: "send", url });
+    globalThis.katevazoWatchOpen?.();
     path.setAttribute("d", CHECK);
     label.textContent = "Sent";
     window.setTimeout(() => {

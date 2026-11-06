@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Send to Katevazo</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icon.png" alt="" width="28" height="28">
+    <h1>Katevazo</h1>
+  </header>
+
+  <section class="page" aria-live="polite">
+    <p class="kind">Current page</p>
+    <p class="title" id="title">&nbsp;</p>
+    <p class="host" id="host"></p>
+  </section>
+
+  <button class="primary" id="send" type="button">Send to Katevazo</button>
+
+  <section class="note" id="note" role="status" hidden>
+    <p><strong>Nothing opened?</strong> Katevazo may not be installed yet. Install it, then send the page again.</p>
+    <a class="secondary" href="https://github.com/ipuppyyt/katevazo/releases/latest" target="_blank" rel="noopener">Get Katevazo</a>
+  </section>
+
+  <footer id="footer">
+    Don't have the app? <a href="https://github.com/ipuppyyt/katevazo/releases/latest" target="_blank" rel="noopener">Get Katevazo</a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

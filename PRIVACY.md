@@ -14,8 +14,8 @@ The extension sends the page you are viewing, or a link you choose, to the Katev
 app on your own computer. It does this by opening a `katevazo://` address, which your
 operating system hands to the app.
 
-- When you click the toolbar button, it reads the address of the current tab, using the
-  `activeTab` permission, and passes it to the app.
+- When you click the toolbar button, a popup shows the title and address of the current tab,
+  using the `activeTab` permission, and passes the address to the app if you press Send.
 - When you use a right-click menu entry, it passes that page or link to the app. This uses
   the `contextMenus` permission.
 - On `www.youtube.com` watch pages it adds a download button to the video player, and on
