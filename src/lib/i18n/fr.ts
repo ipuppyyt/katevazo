@@ -139,6 +139,7 @@ export const fr: Partial<Record<Key, string>> = {
   "set.extensionGet": "Obtenir l’extension",
   "set.extensionSoon": "Pas encore disponible",
   "set.extensionNone": "Aucun navigateur compatible n’a été trouvé sur cet ordinateur.",
+  "set.extensionInstalled": "Installée",
 
   "trim.label": "Couper",
   "trim.start": "Heure de début",

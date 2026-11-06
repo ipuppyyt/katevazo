@@ -138,6 +138,7 @@ export const en = {
   "set.extensionGet": "Get extension",
   "set.extensionSoon": "Not available yet",
   "set.extensionNone": "No supported browser was found on this computer.",
+  "set.extensionInstalled": "Installed",
 
   "trim.label": "Trim",
   "trim.start": "Start time",

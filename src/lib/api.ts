@@ -250,6 +250,8 @@ export interface Browser {
   name: string;
   /** Whether the extension can be installed in this browser today. */
   available: boolean;
+  /** Whether the extension is already installed in one of its profiles. */
+  installed: boolean;
 }
 
 /** The supported browsers installed on this computer. */

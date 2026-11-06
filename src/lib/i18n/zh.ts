@@ -136,6 +136,7 @@ export const zh: Partial<Record<Key, string>> = {
   "set.extensionGet": "获取扩展",
   "set.extensionSoon": "暂不可用",
   "set.extensionNone": "在这台电脑上没有找到受支持的浏览器。",
+  "set.extensionInstalled": "已安装",
 
   "trim.label": "裁剪",
   "trim.start": "开始时间",

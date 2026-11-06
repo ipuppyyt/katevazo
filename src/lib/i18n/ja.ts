@@ -136,6 +136,7 @@ export const ja: Partial<Record<Key, string>> = {
   "set.extensionGet": "拡張機能を入手",
   "set.extensionSoon": "まだ利用できません",
   "set.extensionNone": "対応しているブラウザがこのコンピューターに見つかりません。",
+  "set.extensionInstalled": "インストール済み",
 
   "trim.label": "トリミング",
   "trim.start": "開始時刻",

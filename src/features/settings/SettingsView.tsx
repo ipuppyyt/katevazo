@@ -71,9 +71,13 @@ export function SettingsView() {
         setProxy(s.proxy);
       }).catch((e) => setError(String(e)));
     archiveSize().then(setRemembered).catch(() => {});
-    listBrowsers().then(setBrowsers).catch(() => setBrowsers([]));
+    const refreshBrowsers = () => listBrowsers().then(setBrowsers).catch(() => setBrowsers([]));
+    refreshBrowsers();
+    // Coming back from the browser, so an install shows up straight away.
+    window.addEventListener("focus", refreshBrowsers);
     getVersion().then(setAppVersion).catch(() => {});
     ytdlpVersion().then(setVersion).catch(() => setVersion(t("set.unavailable")));
+    return () => window.removeEventListener("focus", refreshBrowsers);
   }, []);
 
   async function updateEngine() {
@@ -440,7 +444,9 @@ export function SettingsView() {
               <div className={styles.label}>
                 <span>{b.name}</span>
               </div>
-              {b.available ? (
+              {b.installed ? (
+                <small>{t("set.extensionInstalled")}</small>
+              ) : b.available ? (
                 <button className={styles.tinted} onClick={() => getExtension(b.id)}>
                   {t("set.extensionGet")}
                 </button>

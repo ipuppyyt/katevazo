@@ -16,6 +16,9 @@ const CHROME_STORE: &str = "https://chromewebstore.google.com/detail/piaiamccaen
 const EDGE_STORE: &str =
     "https://microsoftedge.microsoft.com/addons/detail/send-to-katevazo/gdccmcbmdllamcdodbllkkgfheehgijc";
 
+/// The extension's ID on each store; a browser keeps an installed extension in a folder of that name.
+const EXTENSION_IDS: [&str; 2] = ["piaiamccaeniknpfiomledfkmldmdpkh", "gdccmcbmdllamcdodbllkkgfheehgijc"];
+
 #[derive(Clone, Copy)]
 enum Store {
     Chrome,
@@ -38,6 +41,10 @@ struct Known {
     id: &'static str,
     name: &'static str,
     store: Store,
+    /// Where its profiles are kept, relative to the local app data folder on Windows, to
+    /// ~/Library/Application Support on macOS and to ~/.config on Linux. Empty for browsers
+    /// that are not Chromium-based, since the extension is not looked for there.
+    data: [&'static str; 3],
     /// Where it lives on Windows, relative to Program Files or the local app data folder.
     windows: &'static [&'static str],
     /// The app's name in /Applications on macOS (unused on other systems).
@@ -53,6 +60,7 @@ const KNOWN: &[Known] = &[
         id: "chrome",
         name: "Google Chrome",
         store: Store::Chrome,
+        data: ["Google/Chrome/User Data", "Google/Chrome", "google-chrome"],
         windows: &["Google\\Chrome\\Application\\chrome.exe"],
         mac: "Google Chrome",
         linux: &["google-chrome", "google-chrome-stable"],
@@ -61,6 +69,7 @@ const KNOWN: &[Known] = &[
         id: "edge",
         name: "Microsoft Edge",
         store: Store::Edge,
+        data: ["Microsoft/Edge/User Data", "Microsoft Edge", "microsoft-edge"],
         windows: &["Microsoft\\Edge\\Application\\msedge.exe"],
         mac: "Microsoft Edge",
         linux: &["microsoft-edge", "microsoft-edge-stable"],
@@ -69,6 +78,7 @@ const KNOWN: &[Known] = &[
         id: "brave",
         name: "Brave",
         store: Store::Chrome,
+        data: ["BraveSoftware/Brave-Browser/User Data", "BraveSoftware/Brave-Browser", "BraveSoftware/Brave-Browser"],
         windows: &["BraveSoftware\\Brave-Browser\\Application\\brave.exe"],
         mac: "Brave Browser",
         linux: &["brave-browser", "brave"],
@@ -77,6 +87,7 @@ const KNOWN: &[Known] = &[
         id: "vivaldi",
         name: "Vivaldi",
         store: Store::Chrome,
+        data: ["Vivaldi/User Data", "Vivaldi", "vivaldi"],
         windows: &["Vivaldi\\Application\\vivaldi.exe"],
         mac: "Vivaldi",
         linux: &["vivaldi", "vivaldi-stable"],
@@ -85,6 +96,7 @@ const KNOWN: &[Known] = &[
         id: "arc",
         name: "Arc",
         store: Store::Chrome,
+        data: ["", "Arc/User Data", ""],
         windows: &[],
         mac: "Arc",
         linux: &[],
@@ -93,6 +105,7 @@ const KNOWN: &[Known] = &[
         id: "chromium",
         name: "Chromium",
         store: Store::Chrome,
+        data: ["Chromium/User Data", "Chromium", "chromium"],
         windows: &["Chromium\\Application\\chrome.exe"],
         mac: "Chromium",
         linux: &["chromium", "chromium-browser"],
@@ -101,6 +114,7 @@ const KNOWN: &[Known] = &[
         id: "opera",
         name: "Opera",
         store: Store::None,
+        data: ["", "", ""],
         windows: &["Programs\\Opera\\opera.exe", "Opera\\opera.exe"],
         mac: "Opera",
         linux: &["opera"],
@@ -109,6 +123,7 @@ const KNOWN: &[Known] = &[
         id: "firefox",
         name: "Firefox",
         store: Store::None,
+        data: ["", "", ""],
         windows: &["Mozilla Firefox\\firefox.exe"],
         mac: "Firefox",
         linux: &["firefox"],
@@ -122,6 +137,38 @@ pub struct Browser {
     name: &'static str,
     /// Whether the extension can be installed in it today.
     available: bool,
+    /// Whether the extension is already installed in one of its profiles.
+    installed: bool,
+}
+
+/// Whether any profile of a Chromium-based browser holds the extension.
+fn has_extension(known: &Known) -> bool {
+    #[cfg(target_os = "windows")]
+    let (base, rel) = (std::env::var_os("LocalAppData").map(PathBuf::from), known.data[0]);
+    #[cfg(target_os = "macos")]
+    let (base, rel) = (
+        std::env::var_os("HOME").map(|h| PathBuf::from(h).join("Library/Application Support")),
+        known.data[1],
+    );
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    let (base, rel) = (
+        std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")),
+        known.data[2],
+    );
+    let Some(base) = base.filter(|_| !rel.is_empty()) else {
+        return false;
+    };
+    let Ok(profiles) = std::fs::read_dir(base.join(rel)) else {
+        return false;
+    };
+    profiles
+        .flatten()
+        .filter(|p| {
+            let name = p.file_name();
+            let name = name.to_string_lossy();
+            name == "Default" || name.starts_with("Profile ")
+        })
+        .any(|p| EXTENSION_IDS.iter().any(|id| p.path().join("Extensions").join(id).is_dir()))
 }
 
 /// How to start a found browser: a full path on Windows, an app name on macOS, a command on Linux.
@@ -175,6 +222,7 @@ pub fn list_browsers() -> Vec<Browser> {
             id: k.id,
             name: k.name,
             available: k.store.url().is_some(),
+            installed: has_extension(k),
         })
         .collect()
 }
