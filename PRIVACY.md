@@ -21,6 +21,9 @@ operating system hands to the app.
 - On `www.youtube.com` watch pages it adds a download button to the video player, and on
   Shorts a Download button beside Share. The page script reads only the address of the video
   you are watching, and only when you click the button.
+- On `www.instagram.com` it adds a download button to posts and reels from public accounts.
+  It skips accounts that Instagram marks as private. The page script reads only the address of
+  the post, and only when you click the button.
 
 ## What it does not do
 
