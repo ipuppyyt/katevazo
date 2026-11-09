@@ -37,7 +37,7 @@ export function Layout({ page, children }: { page: string; children: ReactNode }
             {link("#extension", "Extension")}
             {link("#download", "Download")}
             {link("#faq", "FAQ")}
-            <a href={asset("support.html")} aria-current={page === "support" ? "page" : undefined}>Support</a>
+            <a href={asset("support/")} aria-current={page === "support" ? "page" : undefined}>Support</a>
           </nav>
           <div className="bar-actions">
             <a className="icon-button" href={REPO} aria-label="Katevazo on GitHub">
@@ -58,8 +58,8 @@ export function Layout({ page, children }: { page: string; children: ReactNode }
             <p>Free and open source under the MIT licence. Only download content you have the right to download.</p>
           </div>
           <nav aria-label="Footer">
-            <a href={asset("support.html")}>Support</a>
-            <a href={asset("privacy.html")}>Privacy</a>
+            <a href={asset("support/")}>Support</a>
+            <a href={asset("privacy/")}>Privacy</a>
             <a href={`${REPO}/releases`}>Releases</a>
             <a href={`${REPO}/blob/main/CHANGELOG.md`}>Changelog</a>
             <a href={REPO}>GitHub</a>

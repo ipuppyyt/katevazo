@@ -220,7 +220,7 @@ function Questions() {
             { q: "Does the extension need the app?", a: <p>Yes. The extension only hands links to the Katevazo app. After installing or updating the app, open it once so it registers with your browsers.</p> },
             { q: "How do I keep downloads working when a site changes?", a: <p>Open Settings in the app and update yt-dlp. It takes one click.</p> },
             { q: "Is it legal to use?", a: <p>Only download content you own or have permission to save, and follow each site's terms of service.</p> },
-            { q: "Where do I report a bug?", a: <p>Open an issue on <a href={`${REPO}/issues/new/choose`}>GitHub</a>, or see the <a href={asset("support.html")}>support page</a>.</p> },
+            { q: "Where do I report a bug?", a: <p>Open an issue on <a href={`${REPO}/issues/new/choose`}>GitHub</a>, or see the <a href={asset("support/")}>support page</a>.</p> },
           ]}
         />
       </div>
