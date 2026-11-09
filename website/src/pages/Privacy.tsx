@@ -1,3 +1,4 @@
+import { Reveal } from "../motion";
 export function Privacy() {
   return (
     <div className="page">
@@ -41,6 +42,7 @@ export function Privacy() {
           Questions can be raised at <a href="https://github.com/ipuppyyt/katevazo/issues">github.com/ipuppyyt/katevazo/issues</a>.
         </p>
       </div>
+      <Reveal />
     </div>
   );
 }

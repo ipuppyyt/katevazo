@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/postbuild.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
+    "@tanstack/react-router": "^1.170.46",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

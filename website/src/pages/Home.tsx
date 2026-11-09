@@ -1,5 +1,7 @@
 import { Icon } from "../components/Icon";
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Reveal } from "../motion";
 import { Downloads } from "../components/Download";
 import { Faq } from "../components/Faq";
 import {
@@ -220,7 +222,7 @@ function Questions() {
             { q: "Does the extension need the app?", a: <p>Yes. The extension only hands links to the Katevazo app. After installing or updating the app, open it once so it registers with your browsers.</p> },
             { q: "How do I keep downloads working when a site changes?", a: <p>Open Settings in the app and update yt-dlp. It takes one click.</p> },
             { q: "Is it legal to use?", a: <p>Only download content you own or have permission to save, and follow each site's terms of service.</p> },
-            { q: "Where do I report a bug?", a: <p>Open an issue on <a href={`${REPO}/issues/new/choose`}>GitHub</a>, or see the <a href={asset("support/")}>support page</a>.</p> },
+            { q: "Where do I report a bug?", a: <p>Open an issue on <a href={`${REPO}/issues/new/choose`}>GitHub</a>, or see the <Link to="/support/">support page</Link>.</p> },
           ]}
         />
       </div>
@@ -238,13 +240,14 @@ export function Home() {
       <Extension />
       <Downloads />
       <Questions />
+      <Reveal />
       <section className="section closing">
         <div className="container center">
           <h2>Ready to try it?</h2>
           <div className="cta">
-            <a className="button primary" href="#download">
+            <Link className="button primary" to="/" hash="download">
               <Icon name="download" size={18} /> Download Katevazo
-            </a>
+            </Link>
             <a className="button" href={RELEASES}>Latest release</a>
           </div>
         </div>

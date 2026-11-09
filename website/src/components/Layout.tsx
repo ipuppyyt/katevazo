@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Icon } from "./Icon";
 import { REPO, asset, useSiteTheme } from "../lib";
-import { useMotion } from "../motion";
+import { useHeaderShadow } from "../motion";
 
 function GithubMark() {
   return (
@@ -20,24 +21,33 @@ function ThemeToggle() {
   );
 }
 
-export function Layout({ page, children }: { page: string; children: ReactNode }) {
-  useMotion();
-  const home = page === "home";
-  const link = (hash: string, label: string) => <a href={home ? hash : `${asset("")}${hash}`}>{label}</a>;
+const TITLES: Record<string, string> = {
+  "/": "Katevazo: a clean, fast video downloader",
+  "/support/": "Katevazo support",
+  "/privacy/": "Katevazo privacy policy",
+};
+
+/** The persistent shell: only the page inside it changes when you navigate, so nothing reloads or flashes. */
+export function Layout() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  useHeaderShadow();
+  useEffect(() => {
+    document.title = TITLES[path] ?? "Katevazo";
+  }, [path]);
   return (
     <>
       <header className="site-header">
         <div className="container bar">
-          <a className="brand" href={asset("")}>
+          <Link className="brand" to="/">
             <img src={asset("logo.svg")} alt="" width={28} height={28} />
             <span>Katevazo</span>
-          </a>
+          </Link>
           <nav aria-label="Main">
-            {link("#features", "Features")}
-            {link("#extension", "Extension")}
-            {link("#download", "Download")}
-            {link("#faq", "FAQ")}
-            <a href={asset("support/")} aria-current={page === "support" ? "page" : undefined}>Support</a>
+            <Link to="/" hash="features">Features</Link>
+            <Link to="/" hash="extension">Extension</Link>
+            <Link to="/" hash="download">Download</Link>
+            <Link to="/" hash="faq">FAQ</Link>
+            <Link to="/support/" activeProps={{ "aria-current": "page" }}>Support</Link>
           </nav>
           <div className="bar-actions">
             <a className="icon-button" href={REPO} aria-label="Katevazo on GitHub">
@@ -47,19 +57,21 @@ export function Layout({ page, children }: { page: string; children: ReactNode }
           </div>
         </div>
       </header>
-      <main>{children}</main>
+      <main className="route">
+        <Outlet />
+      </main>
       <footer className="site-footer">
         <div className="container foot">
           <div>
-            <a className="brand" href={asset("")}>
+            <Link className="brand" to="/">
               <img src={asset("logo.svg")} alt="" width={24} height={24} />
               <span>Katevazo</span>
-            </a>
+            </Link>
             <p>Free and open source under the MIT licence. Only download content you have the right to download.</p>
           </div>
           <nav aria-label="Footer">
-            <a href={asset("support/")}>Support</a>
-            <a href={asset("privacy/")}>Privacy</a>
+            <Link to="/support/">Support</Link>
+            <Link to="/privacy/">Privacy</Link>
             <a href={`${REPO}/releases`}>Releases</a>
             <a href={`${REPO}/blob/main/CHANGELOG.md`}>Changelog</a>
             <a href={REPO}>GitHub</a>

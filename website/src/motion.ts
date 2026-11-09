@@ -17,18 +17,21 @@ const TARGETS = [
   ".os-grid + p",
 ].join(",");
 
-/** Marks elements to reveal on scroll and the header to gain a shadow once the page moves. */
-export function useMotion() {
+/** Gives the header a shadow once the page moves. */
+export function useHeaderShadow() {
   useLayoutEffect(() => {
     const header = document.querySelector<HTMLElement>(".site-header");
     const onScroll = () => header?.toggleAttribute("data-scrolled", window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+}
 
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
-      return () => window.removeEventListener("scroll", onScroll);
-    }
-
+/** Marks the page's elements to fade up as they scroll into view. Mount it inside the page, after its content. */
+export function Reveal() {
+  useLayoutEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -47,9 +50,7 @@ export function useMotion() {
       el.classList.add("reveal");
       io.observe(el);
     });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      io.disconnect();
-    };
+    return () => io.disconnect();
   }, []);
+  return null;
 }
