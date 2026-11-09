@@ -821,3 +821,181 @@ p {
     display: block;
   }
 }
+
+/* ---------- Motion ---------- */
+.site-header {
+  transition: box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.site-header[data-scrolled] {
+  box-shadow: 0 1px 0 var(--separator), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.site-header nav a,
+.icon-button,
+.installer,
+.link-card,
+.segmented button,
+.faq summary::after {
+  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.button {
+  transition: transform 0.18s ease, filter 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button.primary:hover {
+  box-shadow: 0 6px 18px var(--accent-soft), 0 2px 6px rgba(0, 122, 255, 0.28);
+}
+
+.card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.feature:hover,
+.os-card:hover,
+.link-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--separator));
+}
+
+.installer:hover {
+  transform: translateX(2px);
+}
+
+/* The "+" turns into a "x" as a question opens. */
+.faq summary::after {
+  content: "+";
+  transition: transform 0.25s ease, color 0.2s ease;
+}
+
+.faq details[open] summary::after {
+  content: "+";
+  transform: rotate(45deg);
+  color: var(--accent);
+}
+
+.faq summary:hover {
+  color: var(--accent);
+}
+
+.status i {
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(40, 200, 64, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(40, 200, 64, 0); }
+}
+
+@keyframes rise {
+  from { opacity: 0; translate: 0 18px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes settle {
+  from { opacity: 0; scale: 0.985; }
+  to { opacity: 1; scale: 1; }
+}
+
+@keyframes drift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Colours glide when the theme changes. */
+  .theme-fade,
+  .theme-fade *,
+  .theme-fade *::before,
+  .theme-fade *::after {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, fill 0.3s ease !important;
+  }
+
+  /* Hero: each part rises in turn on load. */
+  .hero .pill,
+  .hero h1,
+  .hero .lead,
+  .hero .cta,
+  .hero .small,
+  .hero-shot {
+    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .hero .pill { animation-delay: 0.05s; }
+  .hero h1 { animation-delay: 0.12s; }
+  .hero .lead { animation-delay: 0.2s; }
+  .hero .cta { animation-delay: 0.28s; }
+  .hero .small { animation-delay: 0.34s; }
+  .hero-shot { animation-delay: 0.42s; animation-duration: 0.9s; }
+
+  .gradient {
+    background-size: 200% 100%;
+    animation: drift 8s ease-in-out infinite;
+  }
+
+  /* Everything else fades up as it scrolls into view. */
+  .reveal {
+    opacity: 0;
+    translate: 0 20px;
+    transition:
+      opacity 0.6s ease var(--d, 0ms),
+      translate 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms),
+      transform 0.25s ease,
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .reveal.in {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* A new screenshot eases in when the platform or theme changes. */
+  .swap {
+    animation: settle 0.4s ease both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status i,
+  .gradient {
+    animation: none;
+  }
+
+  .card,
+  .installer,
+  .button {
+    transition: none;
+  }
+
+  .feature:hover,
+  .os-card:hover,
+  .link-card:hover,
+  .installer:hover {
+    transform: none;
+  }
+}
+
+/* Questions slide open where the browser supports animating details (Chromium); others just open. */
+@supports selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    .faq details {
+      interpolate-size: allow-keywords;
+    }
+
+    .faq details::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition: block-size 0.3s ease, content-visibility 0.3s allow-discrete;
+    }
+
+    .faq details[open]::details-content {
+      block-size: auto;
+    }
+  }
+}

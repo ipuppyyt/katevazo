@@ -154,7 +154,7 @@ function Screens() {
             ))}
           </div>
         </div>
-        <img className="window big-shot" src={asset(`previews/${shot}-${theme}.webp`)} alt={`Katevazo on ${name}, ${theme} appearance`} width={1760} height={1117} loading="lazy" />
+        <img key={`${shot}-${theme}`} className="window big-shot swap" src={asset(`previews/${shot}-${theme}.webp`)} alt={`Katevazo on ${name}, ${theme} appearance`} width={1760} height={1117} loading="lazy" />
       </div>
     </section>
   );

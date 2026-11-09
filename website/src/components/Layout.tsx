@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Icon } from "./Icon";
 import { REPO, asset, useSiteTheme } from "../lib";
+import { useMotion } from "../motion";
 
 function GithubMark() {
   return (
@@ -20,6 +21,7 @@ function ThemeToggle() {
 }
 
 export function Layout({ page, children }: { page: string; children: ReactNode }) {
+  useMotion();
   const home = page === "home";
   const link = (hash: string, label: string) => <a href={home ? hash : `${asset("")}${hash}`}>{label}</a>;
   return (

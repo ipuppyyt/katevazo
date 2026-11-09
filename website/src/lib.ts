@@ -132,7 +132,11 @@ function subscribeTheme(notify: () => void) {
 export function useSiteTheme(): [Theme, (next: Theme) => void] {
   const theme = useSyncExternalStore(subscribeTheme, currentTheme, () => "light" as Theme);
   const set = (next: Theme) => {
-    document.documentElement.dataset.theme = next;
+    // Fade colours between themes instead of snapping.
+    const root = document.documentElement;
+    root.classList.add("theme-fade");
+    window.setTimeout(() => root.classList.remove("theme-fade"), 350);
+    root.dataset.theme = next;
     savePref("theme", next);
     window.dispatchEvent(new Event(THEME_EVENT));
   };
