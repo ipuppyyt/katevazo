@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Icon } from "./Icon";
-import { REPO, asset } from "../lib";
+import { REPO, asset, useSiteTheme } from "../lib";
 
 function GithubMark() {
   return (
@@ -10,43 +10,11 @@ function GithubMark() {
   );
 }
 
-type Theme = "light" | "dark";
-
-function currentTheme(): Theme {
-  const set = document.documentElement.dataset.theme;
-  if (set === "light" || set === "dark") return set;
-  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(currentTheme);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("theme");
-      if (saved === "light" || saved === "dark") {
-        document.documentElement.dataset.theme = saved;
-        setTheme(saved);
-      }
-    } catch {
-      // Storage can be blocked; the system theme still applies.
-    }
-  }, []);
-
-  const flip = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    setTheme(next);
-    try {
-      localStorage.setItem("theme", next);
-    } catch {
-      // Not remembered, but the page still switches.
-    }
-  };
-
+  const [theme, setTheme] = useSiteTheme();
   return (
-    <button className="icon-button" type="button" onClick={flip} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>
-      {theme === "dark" ? <Icon name="sun" size={18} /> : <Icon name="moon" size={18} />}
+    <button className="icon-button" type="button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>
+      <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
     </button>
   );
 }

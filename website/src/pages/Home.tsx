@@ -13,6 +13,10 @@ import {
   findAsset,
   INSTALLERS,
   useRelease,
+  useSiteTheme,
+  readPref,
+  savePref,
+  type Theme,
 } from "../lib";
 
 const FEATURES = [
@@ -119,7 +123,14 @@ function HowItWorks() {
 
 function Screens() {
   const [shot, setShot] = useState<(typeof SHOTS)[number]["id"]>("macos");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [site] = useSiteTheme();
+  // Starts from the site theme (which follows the system); a choice made here is remembered.
+  const [pref, setPref] = useState<Theme | null>(() => readPref("screens-theme"));
+  const theme = pref ?? site;
+  const pick = (t: Theme) => {
+    setPref(t);
+    savePref("screens-theme", t);
+  };
   const name = SHOTS.find((s) => s.id === shot)!.label;
   return (
     <section className="section">
@@ -137,7 +148,7 @@ function Screens() {
           </div>
           <div className="segmented" role="tablist" aria-label="Appearance">
             {(["light", "dark"] as const).map((t) => (
-              <button key={t} role="tab" aria-selected={theme === t} className={theme === t ? "on" : ""} onClick={() => setTheme(t)} type="button">
+              <button key={t} role="tab" aria-selected={theme === t} className={theme === t ? "on" : ""} onClick={() => pick(t)} type="button">
                 {t === "light" ? "Light" : "Dark"}
               </button>
             ))}

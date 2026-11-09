@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 export const REPO = "https://github.com/ipuppyyt/katevazo";
 export const RELEASES = `${REPO}/releases/latest`;
@@ -84,4 +84,57 @@ export function findAsset(release: Release | null, installer: Installer) {
 
 export function formatSize(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(0)} MB`;
+}
+
+export type Theme = "light" | "dark";
+
+/** Reads a saved preference; storage can be blocked, so this never throws. */
+export function readPref(key: string): Theme | null {
+  try {
+    const v = localStorage.getItem(key);
+    return v === "light" || v === "dark" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function savePref(key: string, value: Theme) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Not remembered, but the page still switches.
+  }
+}
+
+const THEME_EVENT = "katevazo-theme";
+
+function systemTheme(): Theme {
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/** The theme in use: the saved choice if there is one, otherwise the system's. */
+function currentTheme(): Theme {
+  const set = document.documentElement.dataset.theme;
+  return set === "light" || set === "dark" ? set : systemTheme();
+}
+
+function subscribeTheme(notify: () => void) {
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  media.addEventListener("change", notify);
+  window.addEventListener(THEME_EVENT, notify);
+  return () => {
+    media.removeEventListener("change", notify);
+    window.removeEventListener(THEME_EVENT, notify);
+  };
+}
+
+/** The site's theme, following the system until the visitor picks one (then it is remembered). */
+export function useSiteTheme(): [Theme, (next: Theme) => void] {
+  const theme = useSyncExternalStore(subscribeTheme, currentTheme, () => "light" as Theme);
+  const set = (next: Theme) => {
+    document.documentElement.dataset.theme = next;
+    savePref("theme", next);
+    window.dispatchEvent(new Event(THEME_EVENT));
+  };
+  return [theme, set];
 }
