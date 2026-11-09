@@ -34,6 +34,7 @@ const STEPS = [
 ];
 
 const SHOTS = [
+  { id: "windows", label: "Windows" },
   { id: "macos", label: "macOS" },
   { id: "linux", label: "Linux" },
 ] as const;
@@ -65,8 +66,8 @@ function Hero() {
         </div>
         <p className="muted small">Windows, macOS (Apple Silicon) and Linux. Free, with no account.</p>
         <div className="hero-shot">
-          <img className="window only-light" src={asset("previews/macos-light.jpg")} alt="Katevazo's download queue, with a video ready to fetch and several downloads in progress" width={800} height={490} />
-          <img className="window only-dark" src={asset("previews/macos-dark.jpg")} alt="" aria-hidden="true" width={800} height={490} />
+          <img className="window only-light" src={asset("previews/macos-light.webp")} alt="Katevazo's download queue, with a video ready to fetch and several downloads in progress" width={1760} height={1117} />
+          <img className="window only-dark" src={asset("previews/macos-dark.webp")} alt="" aria-hidden="true" width={1760} height={1117} />
         </div>
       </div>
     </section>
@@ -118,27 +119,31 @@ function HowItWorks() {
 
 function Screens() {
   const [shot, setShot] = useState<(typeof SHOTS)[number]["id"]>("macos");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const name = SHOTS.find((s) => s.id === shot)!.label;
   return (
     <section className="section">
       <div className="container">
         <p className="eyebrow">Screenshots</p>
         <h2>Native on every system</h2>
         <p className="section-lead">The window follows each platform's conventions, in light and dark.</p>
-        <div className="segmented" role="tablist" aria-label="Platform">
-          {SHOTS.map((s) => (
-            <button key={s.id} role="tab" aria-selected={shot === s.id} className={shot === s.id ? "on" : ""} onClick={() => setShot(s.id)} type="button">
-              {s.label}
-            </button>
-          ))}
+        <div className="pickers">
+          <div className="segmented" role="tablist" aria-label="Platform">
+            {SHOTS.map((s) => (
+              <button key={s.id} role="tab" aria-selected={shot === s.id} className={shot === s.id ? "on" : ""} onClick={() => setShot(s.id)} type="button">
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <div className="segmented" role="tablist" aria-label="Appearance">
+            {(["light", "dark"] as const).map((t) => (
+              <button key={t} role="tab" aria-selected={theme === t} className={theme === t ? "on" : ""} onClick={() => setTheme(t)} type="button">
+                {t === "light" ? "Light" : "Dark"}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="shots">
-          {(["light", "dark"] as const).map((theme) => (
-            <figure key={theme}>
-              <img className="window" src={asset(`previews/${shot}-${theme}.jpg`)} alt={`Katevazo on ${shot === "macos" ? "macOS" : "Linux"}, ${theme} appearance`} loading="lazy" width={800} height={490} />
-              <figcaption>{theme === "light" ? "Light" : "Dark"}</figcaption>
-            </figure>
-          ))}
-        </div>
+        <img className="window big-shot" src={asset(`previews/${shot}-${theme}.webp`)} alt={`Katevazo on ${name}, ${theme} appearance`} width={1760} height={1117} loading="lazy" />
       </div>
     </section>
   );

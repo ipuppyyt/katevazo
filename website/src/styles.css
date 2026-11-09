@@ -446,21 +446,21 @@ p {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
-.shots {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
-.shots figure {
+.pickers .segmented {
   margin: 0;
 }
 
-.shots figcaption {
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 14px;
-  text-align: center;
+.big-shot {
+  max-width: 960px;
+  margin-inline: auto;
 }
 
 /* Extension */
@@ -776,8 +776,7 @@ p {
   .grid,
   .grid.two,
   .os-grid,
-  .steps,
-  .shots {
+  .steps {
     grid-template-columns: 1fr;
   }
 
