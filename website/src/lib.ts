@@ -142,3 +142,10 @@ export function useSiteTheme(): [Theme, (next: Theme) => void] {
   };
   return [theme, set];
 }
+
+/** The visitor's system, known only in the browser; null while prerendering and on first paint so both match. */
+export function useOs(): Os | null {
+  const [os, setOs] = useState<Os | null>(null);
+  useEffect(() => setOs(detectOs()), []);
+  return os;
+}

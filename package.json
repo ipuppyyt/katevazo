@@ -4,7 +4,7 @@
   "version": "0.5.3",
   "description": "A clean, cross-platform video downloader built with Tauri, Rust and React",
   "license": "MIT",
-  "homepage": "https://github.com/ipuppyyt/katevazo#readme",
+  "homepage": "https://ipuppyyt.github.io/katevazo/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ipuppyyt/katevazo.git"

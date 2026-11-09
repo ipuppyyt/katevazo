@@ -25,13 +25,18 @@ const NOTES: Record<Os, ReactNode> = {
   linux: <>Make the AppImage executable (<code>chmod +x</code>) and run it, or install the package with your package manager.</>,
 };
 
-export function Downloads() {
+/** `intro` is off on the Download page, whose own heading already says it. */
+export function Downloads({ intro = true }: { intro?: boolean }) {
   const release = useRelease();
   return (
     <section id="download" className="section alt">
       <div className="container">
-        <p className="eyebrow">Download</p>
-        <h2>Get Katevazo for your computer</h2>
+        {intro && (
+          <>
+            <p className="eyebrow">Download</p>
+            <h2>Get Katevazo for your computer</h2>
+          </>
+        )}
         <p className="section-lead">
           {release ? `Version ${release.version}. ` : ""}Free, with no account and no ads. Katevazo is in early development, so
           expect some rough edges.

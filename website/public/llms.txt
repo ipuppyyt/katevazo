@@ -1,0 +1,23 @@
+# Katevazo
+
+> Katevazo is a free, open-source desktop video downloader for Windows, macOS and Linux. It wraps yt-dlp and ffmpeg in a clean interface with a download queue, pause and resume, and MP4 or MP3 output. A companion browser extension, Send to Katevazo, sends pages and links to the app from Chrome and Edge.
+
+Katevazo is in early development (pre-1.0). Only YouTube has been tested so far; yt-dlp supports many more sites and they may work too. The name comes from the Greek κατέβασε, "download". It is released under the MIT licence.
+
+## Key pages
+
+- [Home](https://ipuppyyt.github.io/katevazo/): overview, features, screenshots and FAQ
+- [Download](https://ipuppyyt.github.io/katevazo/download/): installers for Windows (.exe, .msi), macOS (.dmg, Apple Silicon) and Linux (AppImage, .deb, .rpm), with install steps
+- [Browser extension](https://ipuppyyt.github.io/katevazo/extension/): Send to Katevazo for Chrome and Edge, permissions explained
+- [Support](https://ipuppyyt.github.io/katevazo/support/): troubleshooting and how to report problems
+- [Privacy policy](https://ipuppyyt.github.io/katevazo/privacy/): the extension collects no personal data
+
+## Source and releases
+
+- [GitHub repository](https://github.com/ipuppyyt/katevazo): source code, issues and README
+- [Latest release](https://github.com/ipuppyyt/katevazo/releases/latest): installers and release notes
+- [Changelog](https://github.com/ipuppyyt/katevazo/blob/main/CHANGELOG.md): what changed in each version
+
+## Optional
+
+- [Full text of this site for language models](https://ipuppyyt.github.io/katevazo/llms-full.txt)

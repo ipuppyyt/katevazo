@@ -1,7 +1,8 @@
 import { Icon } from "../components/Icon";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Reveal } from "../motion";
+import { HOME_FAQ } from "../content";
 import { Downloads } from "../components/Download";
 import { Faq } from "../components/Faq";
 import {
@@ -11,7 +12,7 @@ import {
   REPO,
   RELEASES,
   asset,
-  detectOs,
+  useOs,
   findAsset,
   INSTALLERS,
   useRelease,
@@ -47,7 +48,7 @@ const SHOTS = [
 
 function Hero() {
   const release = useRelease();
-  const os = detectOs();
+  const os = useOs();
   const installer = os ? INSTALLERS.find((i) => i.os === os) : undefined;
   const file = installer ? findAsset(release, installer) : null;
   return (
@@ -127,7 +128,8 @@ function Screens() {
   const [shot, setShot] = useState<(typeof SHOTS)[number]["id"]>("macos");
   const [site] = useSiteTheme();
   // Starts from the site theme (which follows the system); a choice made here is remembered.
-  const [pref, setPref] = useState<Theme | null>(() => readPref("screens-theme"));
+  const [pref, setPref] = useState<Theme | null>(null);
+  useEffect(() => setPref(readPref("screens-theme")), []);
   const theme = pref ?? site;
   const pick = (t: Theme) => {
     setPref(t);
@@ -214,17 +216,7 @@ function Questions() {
       <div className="container narrow">
         <p className="eyebrow">FAQ</p>
         <h2>Questions, answered</h2>
-        <Faq
-          items={[
-            { q: "Is Katevazo free?", a: <p>Yes. It is free and open source under the MIT licence, with no account, ads or tracking.</p> },
-            { q: "Which sites does it work with?", a: <p>YouTube is the one tested so far. Katevazo uses yt-dlp, which supports many more sites, and they may work too.</p> },
-            { q: "Why does my system warn me when I open the installer?", a: <p>The installers are not code-signed or notarized yet. Follow the note under your system in the Download section to open it anyway.</p> },
-            { q: "Does the extension need the app?", a: <p>Yes. The extension only hands links to the Katevazo app. After installing or updating the app, open it once so it registers with your browsers.</p> },
-            { q: "How do I keep downloads working when a site changes?", a: <p>Open Settings in the app and update yt-dlp. It takes one click.</p> },
-            { q: "Is it legal to use?", a: <p>Only download content you own or have permission to save, and follow each site's terms of service.</p> },
-            { q: "Where do I report a bug?", a: <p>Open an issue on <a href={`${REPO}/issues/new/choose`}>GitHub</a>, or see the <Link to="/support/">support page</Link>.</p> },
-          ]}
-        />
+        <Faq items={HOME_FAQ} />
       </div>
     </section>
   );

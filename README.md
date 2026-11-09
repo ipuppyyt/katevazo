@@ -17,6 +17,8 @@
 
 > *Katevazo* comes from the Greek κατέβασε, "download".
 
+Website: <https://ipuppyyt.github.io/katevazo/>
+
 ## Features
 
 - Paste a link, preview the title, thumbnail and available qualities, then download as video (MP4) or audio (MP3)
@@ -84,6 +86,19 @@ npm run tauri build
 npm run build                      # type-check and build the frontend
 cd src-tauri && cargo test         # Rust unit tests
 ```
+
+### Website
+
+The site in [`website/`](website) is a separate Vite + React project that is prerendered to static HTML.
+
+```bash
+cd website
+npm install
+npm run dev      # live preview at http://localhost:5173/katevazo/
+npm run build    # builds, prerenders every page and writes the sitemap
+```
+
+It deploys to GitHub Pages from `main` through `.github/workflows/pages.yml`.
 
 ## How it works
 

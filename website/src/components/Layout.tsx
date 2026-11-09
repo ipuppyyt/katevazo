@@ -3,6 +3,7 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Icon } from "./Icon";
 import { REPO, asset, useSiteTheme } from "../lib";
 import { useHeaderShadow } from "../motion";
+import { PAGES, applyMeta } from "../seo";
 
 function GithubMark() {
   return (
@@ -21,18 +22,12 @@ function ThemeToggle() {
   );
 }
 
-const TITLES: Record<string, string> = {
-  "/": "Katevazo: a clean, fast video downloader",
-  "/support/": "Katevazo support",
-  "/privacy/": "Katevazo privacy policy",
-};
-
 /** The persistent shell: only the page inside it changes when you navigate, so nothing reloads or flashes. */
 export function Layout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   useHeaderShadow();
   useEffect(() => {
-    document.title = TITLES[path] ?? "Katevazo";
+    if (PAGES[path]) applyMeta(PAGES[path]);
   }, [path]);
   return (
     <>
@@ -44,8 +39,8 @@ export function Layout() {
           </Link>
           <nav aria-label="Main">
             <Link to="/" hash="features">Features</Link>
-            <Link to="/" hash="extension">Extension</Link>
-            <Link to="/" hash="download">Download</Link>
+            <Link to="/download/" activeProps={{ "aria-current": "page" }}>Download</Link>
+            <Link to="/extension/" activeProps={{ "aria-current": "page" }}>Extension</Link>
             <Link to="/" hash="faq">FAQ</Link>
             <Link to="/support/" activeProps={{ "aria-current": "page" }}>Support</Link>
           </nav>
@@ -70,6 +65,8 @@ export function Layout() {
             <p>Free and open source under the MIT licence. Only download content you have the right to download.</p>
           </div>
           <nav aria-label="Footer">
+            <Link to="/download/">Download</Link>
+            <Link to="/extension/">Extension</Link>
             <Link to="/support/">Support</Link>
             <Link to="/privacy/">Privacy</Link>
             <a href={`${REPO}/releases`}>Releases</a>

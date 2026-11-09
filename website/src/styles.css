@@ -1006,3 +1006,37 @@ p {
     animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
 }
+
+/* Inner pages */
+.plain-steps {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.plain-steps li {
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.plain-steps strong {
+  color: var(--text);
+}
+
+.perms {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.perms dt {
+  font-weight: 600;
+}
+
+.perms dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+}
+
+.page .grid.two {
+  margin-bottom: 8px;
+}

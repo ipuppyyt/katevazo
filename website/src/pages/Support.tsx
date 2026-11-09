@@ -1,7 +1,7 @@
 import { Reveal } from "../motion";
-import { Link } from "@tanstack/react-router";
 import { Icon } from "../components/Icon";
 import { Faq } from "../components/Faq";
+import { SUPPORT_FAQ } from "../content";
 import { ISSUES, REPO, RELEASES } from "../lib";
 
 export function Support() {
@@ -36,24 +36,7 @@ export function Support() {
         </div>
 
         <h2>Common questions</h2>
-        <Faq
-          items={[
-            {
-              q: 'The extension says "App not found"',
-              a: (
-                <ol>
-                  <li>Install the latest Katevazo app from the <a href={RELEASES}>Releases page</a>.</li>
-                  <li>Open the app once. It registers itself with your browsers each time it starts.</li>
-                  <li>Reopen the extension's popup.</li>
-                </ol>
-              ),
-            },
-            { q: "A download fails or a site stopped working", a: <p>Sites change often. Open Settings in the app and update yt-dlp, then try again. If it still fails, open an issue with the link type and the error shown.</p> },
-            { q: "Windows or macOS blocks the installer", a: <p>The installers are not code-signed or notarized yet. See the notes under your system in the <Link to="/" hash="download">Download section</Link> to open it anyway.</p> },
-            { q: "macOS says the app is damaged", a: <p>Run <code>xattr -cr /Applications/Katevazo.app</code> once in Terminal, then open the app again.</p> },
-            { q: "Where do my files go?", a: <p>Into the save folder set in the app's Settings. You can change it at any time.</p> },
-          ]}
-        />
+        <Faq items={SUPPORT_FAQ} />
       </div>
       <Reveal />
     </div>
