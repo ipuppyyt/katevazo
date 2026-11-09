@@ -49,7 +49,10 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [ ] Intel Mac and Windows ARM builds
 - [ ] winget, Homebrew cask and Flathub packages
 - [ ] Opt-in crash reports (off by default)
-- [ ] Project website with download buttons
+- [x] Project website with download buttons, extension page, support and privacy pages, and SEO ([ipuppyyt.github.io/katevazo](https://ipuppyyt.github.io/katevazo/))
+- [ ] Submit the website sitemap to Google Search Console and Bing Webmaster Tools
+- [ ] Custom domain for the website (drops the `/katevazo` path; see `website/vite.config.ts`)
+- [ ] Browser extension: publish to Firefox Add-ons (Chrome Web Store and Edge Add-ons are live)
 
 ## Quality
 
@@ -64,3 +67,4 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [x] In-app yt-dlp update
 - [x] Branded Windows and macOS installers
 - [x] CI and tagged releases for Windows, macOS and Linux
+- [x] Website deployed to GitHub Pages from `website/` with prerendered pages
