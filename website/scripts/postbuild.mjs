@@ -63,3 +63,8 @@ writeFileSync(
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
 );
 console.log(`prerendered ${ROUTES.length} pages, 404 and sitemap`);
+
+// Text files that name the site's address get the real one for this build.
+for (const f of ["llms.txt", "llms-full.txt", "robots.txt"]) {
+  writeFileSync(`dist/${f}`, readFileSync(`dist/${f}`, "utf8").replaceAll("%SITE%", SITE));
+}

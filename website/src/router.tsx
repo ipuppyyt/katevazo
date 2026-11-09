@@ -29,13 +29,13 @@ const routeTree = root.addChildren([
   createRoute({ getParentRoute: () => root, path: "/privacy/", component: Privacy }),
 ]);
 
-// The site lives under /katevazo/ on GitHub Pages. Pages are prerendered to real files at build time
+// Any sub-path (GitHub Pages serves under the repo name) comes from the build base. Pages are prerendered to real files at build time
 // (see scripts/postbuild.mjs), so a link opened directly loads fully formed and the router then takes over.
 export function createAppRouter(history?: RouterHistory) {
   return createRouter({
     routeTree,
     history,
-    basepath: "/katevazo",
+    basepath: import.meta.env.BASE_URL.replace(/[/]$/, "") || "/",
     trailingSlash: "always",
     scrollRestoration: true,
     defaultPreload: "intent",

@@ -1,6 +1,6 @@
 # Katevazo: full site text
 
-Katevazo is a free, open-source video downloader for Windows, macOS and Linux. Source: https://github.com/ipuppyyt/katevazo. Website: https://ipuppyyt.github.io/katevazo/. Licence: MIT.
+Katevazo is a free, open-source video downloader for Windows, macOS and Linux. Source: https://github.com/ipuppyyt/katevazo. Website: %SITE%/. Licence: MIT.
 
 ## What it is
 
@@ -23,7 +23,7 @@ Katevazo is in early development (pre-1.0). Only YouTube has been tested so far.
 
 ## Download and install
 
-Installers are published on https://github.com/ipuppyyt/katevazo/releases/latest and listed at https://ipuppyyt.github.io/katevazo/download/.
+Installers are published on https://github.com/ipuppyyt/katevazo/releases/latest and listed at %SITE%/download/.
 
 - Windows 10 or 11, 64-bit: .exe installer or .msi package. The installers are not code-signed yet, so SmartScreen may show "Windows protected your PC". Choose More info, then Run anyway.
 - macOS, Apple Silicon (M1 and newer): .dmg. The app is not notarized yet. If it will not open, use System Settings, Privacy & Security, Open Anyway. If macOS says the app is damaged, run: xattr -cr /Applications/Katevazo.app
@@ -43,7 +43,7 @@ Send to Katevazo is a free browser extension for Chrome and Edge (and other Chro
 
 ## Privacy
 
-The extension does not collect, store, share or sell any personal data, and it makes no network requests of its own. Links go only to the Katevazo app on the user's computer. Full policy: https://ipuppyyt.github.io/katevazo/privacy/
+The extension does not collect, store, share or sell any personal data, and it makes no network requests of its own. Links go only to the Katevazo app on the user's computer. Full policy: %SITE%/privacy/
 
 ## Frequently asked questions
 
@@ -51,4 +51,4 @@ Q: Is Katevazo free? A: Yes. It is free and open source under the MIT licence, w
 Q: Which sites does it work with? A: YouTube is the site tested so far. Katevazo uses yt-dlp, which supports many more sites, and they may work too.
 Q: How do I keep downloads working when a site changes? A: Open Settings in the app and update yt-dlp. It takes one click.
 Q: The extension says "App not found". A: Install the latest Katevazo app, open it once so it registers with your browsers, then reopen the extension's popup.
-Q: Where do I report a bug? A: https://github.com/ipuppyyt/katevazo/issues/new/choose or https://ipuppyyt.github.io/katevazo/support/
+Q: Where do I report a bug? A: https://github.com/ipuppyyt/katevazo/issues/new/choose or %SITE%/support/

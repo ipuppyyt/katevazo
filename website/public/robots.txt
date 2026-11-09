@@ -26,4 +26,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://ipuppyyt.github.io/katevazo/sitemap.xml
+Sitemap: %SITE%/sitemap.xml

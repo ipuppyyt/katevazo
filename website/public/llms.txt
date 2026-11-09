@@ -6,11 +6,11 @@ Katevazo is in early development (pre-1.0). Only YouTube has been tested so far;
 
 ## Key pages
 
-- [Home](https://ipuppyyt.github.io/katevazo/): overview, features, screenshots and FAQ
-- [Download](https://ipuppyyt.github.io/katevazo/download/): installers for Windows (.exe, .msi), macOS (.dmg, Apple Silicon) and Linux (AppImage, .deb, .rpm), with install steps
-- [Browser extension](https://ipuppyyt.github.io/katevazo/extension/): Send to Katevazo for Chrome and Edge, permissions explained
-- [Support](https://ipuppyyt.github.io/katevazo/support/): troubleshooting and how to report problems
-- [Privacy policy](https://ipuppyyt.github.io/katevazo/privacy/): the extension collects no personal data
+- [Home](%SITE%/): overview, features, screenshots and FAQ
+- [Download](%SITE%/download/): installers for Windows (.exe, .msi), macOS (.dmg, Apple Silicon) and Linux (AppImage, .deb, .rpm), with install steps
+- [Browser extension](%SITE%/extension/): Send to Katevazo for Chrome and Edge, permissions explained
+- [Support](%SITE%/support/): troubleshooting and how to report problems
+- [Privacy policy](%SITE%/privacy/): the extension collects no personal data
 
 ## Source and releases
 
@@ -20,4 +20,4 @@ Katevazo is in early development (pre-1.0). Only YouTube has been tested so far;
 
 ## Optional
 
-- [Full text of this site for language models](https://ipuppyyt.github.io/katevazo/llms-full.txt)
+- [Full text of this site for language models](%SITE%/llms-full.txt)

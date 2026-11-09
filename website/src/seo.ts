@@ -2,7 +2,7 @@ import { EXTENSION_FAQ, HOME_FAQ, SUPPORT_FAQ, type Qa } from "./content";
 import { CHROME_STORE, EDGE_STORE, REPO, RELEASES } from "./lib";
 
 export const ORIGIN = "https://ipuppyyt.github.io";
-export const BASE = "/katevazo";
+export const BASE = import.meta.env.BASE_URL.replace(/[/]$/, "");
 export const SITE = `${ORIGIN}${BASE}`;
 export const OG_IMAGE = `${SITE}/og.jpg`;
 export const NAME = "Katevazo";
