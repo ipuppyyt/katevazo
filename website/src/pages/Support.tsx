@@ -1,4 +1,4 @@
-import { BookOpen, Bug, ShieldAlert } from "lucide-react";
+import { Icon } from "../components/Icon";
 import { Faq } from "../components/Faq";
 import { ISSUES, REPO, RELEASES, asset } from "../lib";
 
@@ -12,22 +12,22 @@ export function Support() {
 
         <div className="grid two">
           <a className="card link-card" href={ISSUES}>
-            <span className="tile"><Bug size={20} /></span>
+            <span className="tile"><Icon name="bug" size={20} /></span>
             <h3>Report a problem</h3>
             <p>Open an issue on GitHub. Say which system and app version you use, and what you expected to happen.</p>
           </a>
           <a className="card link-card" href={`${REPO}/security/policy`}>
-            <span className="tile"><ShieldAlert size={20} /></span>
+            <span className="tile"><Icon name="alert" size={20} /></span>
             <h3>Security issues</h3>
             <p>Please read the security policy before reporting a vulnerability.</p>
           </a>
           <a className="card link-card" href={`${REPO}/blob/main/CHANGELOG.md`}>
-            <span className="tile"><BookOpen size={20} /></span>
+            <span className="tile"><Icon name="book" size={20} /></span>
             <h3>What's new</h3>
             <p>See the changelog for fixes and features in each release.</p>
           </a>
           <a className="card link-card" href={RELEASES}>
-            <span className="tile"><BookOpen size={20} /></span>
+            <span className="tile"><Icon name="book" size={20} /></span>
             <h3>Get the latest version</h3>
             <p>Many problems are fixed by updating. Download the newest installer.</p>
           </a>

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Icon } from "./Icon";
 import { REPO, asset } from "../lib";
 
 function GithubMark() {
@@ -46,7 +46,7 @@ function ThemeToggle() {
 
   return (
     <button className="icon-button" type="button" onClick={flip} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>
-      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      {theme === "dark" ? <Icon name="sun" size={18} /> : <Icon name="moon" size={18} />}
     </button>
   );
 }

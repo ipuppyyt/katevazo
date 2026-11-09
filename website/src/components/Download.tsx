@@ -1,11 +1,11 @@
-import { Apple, Download as DownloadIcon, Monitor, Terminal } from "lucide-react";
+import { Icon } from "./Icon";
 import type { ReactNode } from "react";
 import { INSTALLERS, OS_NAME, RELEASES, findAsset, formatSize, useRelease, type Os } from "../lib";
 
 const ICONS: Record<Os, ReactNode> = {
-  windows: <Monitor size={22} />,
-  macos: <Apple size={22} />,
-  linux: <Terminal size={22} />,
+  windows: <Icon name="monitor" size={22} />,
+  macos: <Icon name="laptop" size={22} />,
+  linux: <Icon name="terminal" size={22} />,
 };
 
 const NOTES: Record<Os, ReactNode> = {
@@ -49,7 +49,7 @@ export function Downloads() {
                   return (
                     <li key={installer.label}>
                       <a className="installer" href={file?.url ?? RELEASES}>
-                        <DownloadIcon size={16} />
+                        <Icon name="download" size={16} />
                         <span>
                           <strong>{installer.label}</strong>
                           <small>

@@ -1,17 +1,4 @@
-import {
-  Download as DownloadIcon,
-  FileVideo,
-  Globe,
-  Languages,
-  Link2,
-  ListChecks,
-  Palette,
-  PauseCircle,
-  Puzzle,
-  RefreshCw,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+import { Icon } from "../components/Icon";
 import { useState } from "react";
 import { Downloads } from "../components/Download";
 import { Faq } from "../components/Faq";
@@ -29,21 +16,21 @@ import {
 } from "../lib";
 
 const FEATURES = [
-  { icon: <FileVideo size={20} />, title: "Video or audio", text: "Pick the quality you want, as MP4 video or MP3 audio, after previewing the title and thumbnail." },
-  { icon: <ListChecks size={20} />, title: "A proper queue", text: "Several downloads at once with live progress, speed and time remaining, in one steady progress bar." },
-  { icon: <PauseCircle size={20} />, title: "Pause and resume", text: "Stop any download and continue later. Partial files are continued, not restarted." },
-  { icon: <RefreshCw size={20} />, title: "Always up to date", text: "Update yt-dlp in one click from inside the app, so downloads keep working when sites change." },
-  { icon: <Zap size={20} />, title: "Quick to add", text: "Drag and drop links, press Ctrl/Cmd+K for the command palette, or Ctrl/Cmd+Shift+D from the tray." },
-  { icon: <Puzzle size={20} />, title: "Browser extension", text: "Send the page you are on to the app, with download buttons on YouTube and Instagram." },
-  { icon: <Palette size={20} />, title: "Looks at home", text: "A native-feeling interface that follows each system's window style, in light, dark or system appearance." },
-  { icon: <Languages size={20} />, title: "Eight languages", text: "English, Spanish, French, German, Portuguese, Italian, Japanese and Simplified Chinese." },
-  { icon: <ShieldCheck size={20} />, title: "Private by design", text: "No account, no analytics and no ads. Everything runs on your computer." },
+  { icon: <Icon name="video" size={20} />, title: "Video or audio", text: "Pick the quality you want, as MP4 video or MP3 audio, after previewing the title and thumbnail." },
+  { icon: <Icon name="checklist" size={20} />, title: "A proper queue", text: "Several downloads at once with live progress, speed and time remaining, in one steady progress bar." },
+  { icon: <Icon name="pause" size={20} />, title: "Pause and resume", text: "Stop any download and continue later. Partial files are continued, not restarted." },
+  { icon: <Icon name="refresh" size={20} />, title: "Always up to date", text: "Update yt-dlp in one click from inside the app, so downloads keep working when sites change." },
+  { icon: <Icon name="bolt" size={20} />, title: "Quick to add", text: "Drag and drop links, press Ctrl/Cmd+K for the command palette, or Ctrl/Cmd+Shift+D from the tray." },
+  { icon: <Icon name="puzzle" size={20} />, title: "Browser extension", text: "Send the page you are on to the app, with download buttons on YouTube and Instagram." },
+  { icon: <Icon name="palette" size={20} />, title: "Looks at home", text: "A native-feeling interface that follows each system's window style, in light, dark or system appearance." },
+  { icon: <Icon name="translate" size={20} />, title: "Eight languages", text: "English, Spanish, French, German, Portuguese, Italian, Japanese and Simplified Chinese." },
+  { icon: <Icon name="shield" size={20} />, title: "Private by design", text: "No account, no analytics and no ads. Everything runs on your computer." },
 ];
 
 const STEPS = [
-  { icon: <Link2 size={22} />, title: "Paste a link", text: "Drop in a video address, or send it from your browser. Katevazo fetches the title, thumbnail and the qualities on offer." },
-  { icon: <FileVideo size={22} />, title: "Choose a format", text: "Select video or audio and the quality you want. Nothing downloads until you press Download." },
-  { icon: <DownloadIcon size={22} />, title: "Download", text: "Watch it in the queue, pause or retry whenever you like, and find the finished file in your folder." },
+  { icon: <Icon name="link" size={22} />, title: "Paste a link", text: "Drop in a video address, or send it from your browser. Katevazo fetches the title, thumbnail and the qualities on offer." },
+  { icon: <Icon name="video" size={22} />, title: "Choose a format", text: "Select video or audio and the quality you want. Nothing downloads until you press Download." },
+  { icon: <Icon name="download" size={22} />, title: "Download", text: "Watch it in the queue, pause or retry whenever you like, and find the finished file in your folder." },
 ];
 
 const SHOTS = [
@@ -69,7 +56,7 @@ function Hero() {
         </p>
         <div className="cta">
           <a className="button primary" href={file?.url ?? "#download"}>
-            <DownloadIcon size={18} />
+            <Icon name="download" size={18} />
             {os ? `Download for ${OS_NAME[os]}` : "Download"}
           </a>
           <a className="button" href={REPO}>
@@ -175,10 +162,10 @@ function Extension() {
           </ul>
           <div className="cta left">
             <a className="button primary" href={CHROME_STORE}>
-              <Globe size={18} /> Add to Chrome
+              <Icon name="globe" size={18} /> Add to Chrome
             </a>
             <a className="button" href={EDGE_STORE}>
-              <Globe size={18} /> Add to Edge
+              <Icon name="globe" size={18} /> Add to Edge
             </a>
           </div>
           <p className="muted small">Firefox is coming soon. It needs the Katevazo app installed, and works with Brave, Vivaldi and other Chromium browsers too.</p>
@@ -240,7 +227,7 @@ export function Home() {
           <h2>Ready to try it?</h2>
           <div className="cta">
             <a className="button primary" href="#download">
-              <DownloadIcon size={18} /> Download Katevazo
+              <Icon name="download" size={18} /> Download Katevazo
             </a>
             <a className="button" href={RELEASES}>Latest release</a>
           </div>
