@@ -85,6 +85,15 @@
   @include button-plain;
 }
 
+.engineState {
+  color: var(--text-muted);
+  font-size: 12px;
+
+  &[data-tone="failed"] {
+    color: var(--warning);
+  }
+}
+
 .footnote {
   padding: var(--space-2) var(--space-4) 0;
   color: var(--text-muted);

@@ -769,6 +769,8 @@ fn retry_delay(attempt: u32) -> Duration {
 }
 
 async fn run_job(app: &AppHandle, state: &DownloadState, id: &str, spec: &Spec) -> Outcome {
+    // A download that was queued while yt-dlp updates itself starts once the update is done.
+    crate::engine::ready(app).await;
     let args = build_args(
         &spec.options,
         &spec.out_dir.to_string_lossy().replace('\\', "/"),

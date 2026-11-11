@@ -210,7 +210,8 @@ pub fn command(app: &AppHandle) -> Result<Command, String> {
     Ok(cmd.args(network_args(&crate::settings::load(app))))
 }
 
-async fn run(app: &AppHandle, args: &[&str]) -> Result<String, String> {
+/// Runs yt-dlp without waiting for the start-up update, for asking it its own version.
+async fn run_now(app: &AppHandle, args: &[&str]) -> Result<String, String> {
     let out = command(app)?
         .args(args)
         .output()
@@ -223,15 +224,26 @@ async fn run(app: &AppHandle, args: &[&str]) -> Result<String, String> {
     }
 }
 
-#[tauri::command]
-pub async fn ytdlp_version(app: AppHandle) -> Result<String, String> {
-    run(&app, &["--version"]).await
+/// Like `run_now`, but first lets the start-up update finish, so every lookup uses the newest yt-dlp.
+async fn run(app: &AppHandle, args: &[&str]) -> Result<String, String> {
+    crate::engine::ready(app).await;
+    run_now(app, args).await
 }
 
-/// Updates yt-dlp to the latest release and returns the new version.
+/// The version of yt-dlp that is in use right now.
+pub async fn version(app: &AppHandle) -> Result<String, String> {
+    run_now(app, &["--version"]).await
+}
+
 #[tauri::command]
-pub async fn update_ytdlp(app: AppHandle) -> Result<String, String> {
-    let managed = managed_path(&app)?;
+pub async fn ytdlp_version(app: AppHandle) -> Result<String, String> {
+    version(&app).await
+}
+
+/// Updates yt-dlp to the latest release and returns the version now in use. The engine module
+/// runs this at start-up; nothing else should, since an update replaces the file in place.
+pub async fn update(app: &AppHandle) -> Result<String, String> {
+    let managed = managed_path(app)?;
     if !managed.exists() {
         let bundled = std::env::current_exe()
             .map_err(|e| e.to_string())?
@@ -242,17 +254,21 @@ pub async fn update_ytdlp(app: AppHandle) -> Result<String, String> {
         std::fs::copy(&bundled, &managed)
             .map_err(|e| format!("could not copy {}: {e}", bundled.display()))?;
     }
-    let out = app
-        .shell()
-        .command(&managed)
-        .args(["-U"])
+    // Behind a proxy the check for a new release has to go through it as well.
+    let prefs = crate::settings::load(app);
+    let proxy = prefs.proxy.trim();
+    let mut cmd = app.shell().command(&managed).args(["-U"]);
+    if !proxy.is_empty() {
+        cmd = cmd.args(["--proxy", proxy]);
+    }
+    let out = cmd
         .output()
         .await
         .map_err(|e| e.to_string())?;
     if !out.status.success() {
         return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
     }
-    run(&app, &["--version"]).await
+    version(app).await
 }
 
 #[tauri::command]

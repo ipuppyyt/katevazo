@@ -4,7 +4,6 @@ import {
   checkSubscriptions,
   getSettings,
   setSettings,
-  updateYtdlp,
   type Theme,
 } from "../../lib/api";
 import { useApp, type Tab } from "../../lib/app";
@@ -64,11 +63,6 @@ export function buildCommands(): Command[] {
         const count = await checkSubscriptions();
         toast(count === 0 ? t("palette.checked_zero") : t("palette.checked", { count }));
       }),
-    },
-    {
-      id: "update",
-      label: t("palette.updateYtdlp"),
-      run: attempt(async () => toast(t("palette.updated", { version: await updateYtdlp() }))),
     },
     { id: "clear", label: t("palette.clearFinished"), run: () => useQueue.getState().clearFinished() },
     {

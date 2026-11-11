@@ -1,5 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
+import { EngineBanner } from "./components/EngineBanner";
 import { Toast } from "./components/Toast";
 import { CommandPalette } from "./features/palette/CommandPalette";
 import { ShortcutsHelp } from "./features/palette/ShortcutsHelp";
@@ -19,6 +20,7 @@ import { ConvertView } from "./features/convert/ConvertView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { SubscriptionsView } from "./features/subscriptions/SubscriptionsView";
 import { applyTheme, getSettings, takePendingLinks } from "./lib/api";
+import { listenEngine, useEngine, whenEngineReady } from "./lib/engine";
 
 const NAV: { id: Tab; icon: IconName }[] = [
   { id: "Downloads", icon: "save" },
@@ -44,19 +46,38 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.platform = platform;
     const unlisten = listenForUpdates();
+    const unlistenEngine = listenEngine();
     getSettings()
       .then((s) => {
         applyTheme(s.theme);
         useLang.getState().set(s.language);
       })
       .catch(() => {});
-    return () => void unlisten.then((fn) => fn());
+    return () => {
+      void unlisten.then((fn) => fn());
+      void unlistenEngine.then((fn) => fn());
+    };
   }, []);
 
   // Links sent by the browser extension or a katevazo:// address, including ones that
-  // arrived before the window was ready.
+  // arrived before the window was ready. When the app was started by one, the download
+  // engine is still updating itself: the link is held until that is done, so it is looked
+  // up with the newest yt-dlp, and the banner says so.
   useEffect(() => {
-    const pick = () => takePendingLinks().then((links) => useApp.getState().openLinks(links)).catch(() => {});
+    const pick = async () => {
+      try {
+        const links = await takePendingLinks();
+        if (links.length === 0) return;
+        const engine = useEngine.getState();
+        engine.setHeld(engine.held + links.length);
+        await whenEngineReady();
+        const after = useEngine.getState();
+        after.setHeld(Math.max(0, after.held - links.length));
+        useApp.getState().openLinks(links);
+      } catch {
+        // Nothing waiting, or the window is closing.
+      }
+    };
     void pick();
     const unlisten = listen("app://links", pick);
     return () => void unlisten.then((fn) => fn());
@@ -104,6 +125,7 @@ function App() {
           <div className={styles.slot} ref={setSlot} />
           {!isMac && <WindowControls platform={platform} />}
         </header>
+        <EngineBanner />
         <ToolbarSlotContext.Provider value={slot}>
           <main className={styles.content}>
             {/* Kept mounted (just hidden) so the pasted URL and queue survive tab switches. */}

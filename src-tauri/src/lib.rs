@@ -5,6 +5,7 @@ mod archive;
 mod browsers;
 mod convert;
 mod download;
+mod engine;
 mod files;
 mod history;
 mod link;
@@ -31,8 +32,11 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .manage(download::DownloadState::default())
         .manage(link::Pending::default())
+        .manage(engine::Engine::default())
         .setup(|app| {
             download::set_concurrency(app.handle(), settings::load(app.handle()).max_concurrent as usize);
+            // Brings yt-dlp up to date before anything is looked up or downloaded.
+            engine::start(app.handle().clone());
             subscriptions::start_checking(app.handle().clone());
             tray::setup(app.handle())?;
             // Lets the browser extension find out that the app is installed.
@@ -73,7 +77,7 @@ pub fn run() {
             browsers::install_extension,
             files::open_file,
             files::reveal_file,
-            ytdlp::update_ytdlp,
+            engine::engine_status,
             archive::archive_size,
             archive::clear_archive,
             subscriptions::list_subscriptions,

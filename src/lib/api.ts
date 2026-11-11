@@ -261,7 +261,14 @@ export const listBrowsers = () => invoke<Browser[]>("list_browsers");
 export const installExtension = (id: string) => invoke<void>("install_extension", { id });
 
 export const ytdlpVersion = () => invoke<string>("ytdlp_version");
-export const updateYtdlp = () => invoke<string>("update_ytdlp");
+
+/** What the download engine (yt-dlp) is doing. It updates itself at every launch. */
+export type EngineStatus =
+  | { state: "updating" }
+  | { state: "ready"; version: string; updated: boolean }
+  | { state: "failed"; version: string | null; message: string };
+
+export const engineStatus = () => invoke<EngineStatus>("engine_status");
 
 export function formatDuration(seconds: number | null): string {
   if (seconds == null) return "";

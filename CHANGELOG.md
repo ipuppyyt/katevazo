@@ -6,6 +6,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- yt-dlp now updates itself every time Katevazo starts, so downloads keep working when sites change. The Check for Updates button and the Update yt-dlp command are gone.
+- When the app is opened by a link from the browser extension, it finishes updating the download engine first and then opens the link.
+- A banner above the page shows the update while it runs, and whether it installed a new version or could not check (for example when offline). Settings shows the engine version and its state.
+
 ## [0.5.3] - 2026-11-09
 
 ### Added

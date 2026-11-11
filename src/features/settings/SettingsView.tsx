@@ -13,13 +13,12 @@ import {
   previewTemplate,
   setSettings,
   TEMPLATE_FIELDS,
-  updateYtdlp,
-  ytdlpVersion,
   type Browser,
   type Settings,
   type Theme,
 } from "../../lib/api";
 import { useApp } from "../../lib/app";
+import { useEngine } from "../../lib/engine";
 import { LANGUAGES, resolveLanguage, useLang, useT, type Key } from "../../lib/i18n";
 import styles from "./SettingsView.module.scss";
 
@@ -52,8 +51,7 @@ export function SettingsView() {
   const t = useT();
   const [settings, setLocal] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState<string | null>(null);
-  const [updating, setUpdating] = useState(false);
+  const engine = useEngine((s) => s.status);
   const [template, setTemplate] = useState("");
   const [templateError, setTemplateError] = useState<string | null>(null);
   const [proxy, setProxy] = useState("");
@@ -76,21 +74,8 @@ export function SettingsView() {
     // Coming back from the browser, so an install shows up straight away.
     window.addEventListener("focus", refreshBrowsers);
     getVersion().then(setAppVersion).catch(() => {});
-    ytdlpVersion().then(setVersion).catch(() => setVersion(t("set.unavailable")));
     return () => window.removeEventListener("focus", refreshBrowsers);
   }, []);
-
-  async function updateEngine() {
-    setUpdating(true);
-    setError(null);
-    try {
-      setVersion(await updateYtdlp());
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setUpdating(false);
-    }
-  }
 
   async function getExtension(id: string) {
     setError(null);
@@ -464,11 +449,13 @@ export function SettingsView() {
           <div className={styles.row}>
             <div className={styles.label}>
               <span>yt-dlp</span>
-              <code>{updating ? t("set.updating") : (version ?? "…")}</code>
+              <code>{engine.state === "updating" ? t("set.updating") : (engine.version ?? t("set.unavailable"))}</code>
             </div>
-            <button className={styles.tinted} onClick={updateEngine} disabled={updating}>
-              {t("set.checkUpdates")}
-            </button>
+            <small className={styles.engineState} data-tone={engine.state}>
+              {engine.state === "updating" && t("set.engineChecking")}
+              {engine.state === "ready" && t(engine.updated ? "set.engineUpdated" : "set.engineCurrent")}
+              {engine.state === "failed" && t("set.engineFailed")}
+            </small>
           </div>
         </div>
         <p className={styles.footnote}>
