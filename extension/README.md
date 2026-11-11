@@ -8,6 +8,8 @@ On YouTube it also adds a download button to the player's control bar, next to S
 Clicking it sends the video you are watching (without any playlist) to the app. On Shorts it
 adds a Download button between Share and Remix.
 
+On Vimeo, X, TikTok, Twitch, Facebook, Reddit and Dailymotion it shows a small Katevazo chip just above the top-right corner of a video while your pointer is over it (below the video when there is no room above, and not at all in fullscreen). It never covers the picture or the site’s own controls. Clicking it sends that video’s link to the app. It appears only where the video’s link can be worked out (a post, a watch page, a channel that is live), and never on small previews.
+
 On Instagram it adds a download icon after Share on reels and video posts. It appears only for public accounts: where Instagram's page data marks the
 account as private, nothing is added. That check is best effort, since the data is most reliable right after a page loads.
 
