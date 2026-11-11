@@ -20,7 +20,7 @@ certificates in [SIGNING.md](SIGNING.md).
 | Secret | Value |
 | --- | --- |
 | `TAURI_SIGNING_PRIVATE_KEY` | The full contents of the private key file |
-| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Its password; leave empty when there is none |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Its password. Skip this secret when the key has none (GitHub does not allow empty secrets) |
 
 3. Keep a backup of the private key. If it is lost, installed apps can no longer verify an
    update and users would have to reinstall by hand.
