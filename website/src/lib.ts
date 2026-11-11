@@ -51,9 +51,15 @@ interface ApiRelease {
   assets: { name: string; browser_download_url: string; size: number }[];
 }
 
-/** Reads the newest published release so the page never needs a rebuild to offer it. */
+/** The release that was newest when the site was built; it is in the page’s HTML. */
+export const BUILT_RELEASE: Release | null = __RELEASE__;
+
+/**
+ * The newest published release. The build’s copy is used first, then the browser asks GitHub so a
+ * release published after the build is still offered without waiting for a rebuild.
+ */
 export function useRelease(): Release | null {
-  const [release, setRelease] = useState<Release | null>(null);
+  const [release, setRelease] = useState<Release | null>(BUILT_RELEASE);
   useEffect(() => {
     let live = true;
     fetch("https://api.github.com/repos/ipuppyyt/katevazo/releases/latest", {

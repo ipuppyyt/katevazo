@@ -1,5 +1,5 @@
 import { EXTENSION_FAQ, HOME_FAQ, SUPPORT_FAQ, type Qa } from "./content";
-import { CHROME_STORE, EDGE_STORE, REPO, RELEASES } from "./lib";
+import { BUILT_RELEASE, CHROME_STORE, EDGE_STORE, REPO, RELEASES } from "./lib";
 
 export const ORIGIN = "https://ipuppyyt.github.io";
 export const BASE = import.meta.env.BASE_URL.replace(/[/]$/, "");
@@ -50,6 +50,7 @@ const application = {
   author: { "@id": `${SITE}/#organization` },
   publisher: { "@id": `${SITE}/#organization` },
   codeRepository: REPO,
+  ...(BUILT_RELEASE ? { softwareVersion: BUILT_RELEASE.version } : {}),
 };
 
 const extension = {

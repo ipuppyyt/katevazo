@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
     paths: [website/**, .github/workflows/pages.yml]
+  # A new release rebuilds the site so its HTML names the new version.
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -34,6 +37,7 @@ jobs:
         working-directory: website
         env:
           SITE_BASE: /${{ github.event.repository.name }}/
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
