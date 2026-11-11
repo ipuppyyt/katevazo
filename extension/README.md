@@ -8,7 +8,9 @@ On YouTube it also adds a download button to the player's control bar, next to S
 Clicking it sends the video you are watching (without any playlist) to the app. On Shorts it
 adds a Download button between Share and Remix.
 
-On Vimeo, X, TikTok, Twitch, Facebook, Reddit and Dailymotion it shows a small Katevazo chip just above the top-right corner of a video while your pointer is over it (below the video when there is no room above, and not at all in fullscreen). It never covers the picture or the site’s own controls. Clicking it sends that video’s link to the app. It appears only where the video’s link can be worked out (a post, a watch page, a channel that is live), and never on small previews.
+On Vimeo the button is in the player's own control bar, just before Picture in picture. On Twitch it is in the control bar just before Settings, on videos (VODs) and clips only; live streams get no button. On X, Facebook, Reddit and Dailymotion it shows a small Katevazo chip in the top-right corner of a video while your pointer is over it. Clicking it sends that video’s link to the app. It appears only where the video’s link can be worked out (a post, a watch page, a channel that is live), and never on small previews.
+
+On any other site that yt-dlp supports, open the toolbar popup and switch on **Show the Katevazo button on this site**. The browser asks you to allow access to that one site (an optional permission, so it is not requested at install), and the chip then appears above videos there, including after a restart. Switch it off in the same place. The page's address is what gets sent, which yt-dlp reads for most sites.
 
 On Instagram it adds a download icon after Share on reels and video posts. It appears only for public accounts: where Instagram's page data marks the
 account as private, nothing is added. That check is best effort, since the data is most reliable right after a page loads.

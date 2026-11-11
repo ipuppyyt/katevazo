@@ -23,6 +23,8 @@ export function Privacy() {
           <li>When you use a right-click menu entry, it passes that page or link to the app. This uses the <code>contextMenus</code> permission.</li>
           <li>On <code>www.youtube.com</code> watch pages it adds a download button to the video player, and on Shorts a Download button beside Share. The page script reads only the address of the video you are watching, and only when you click the button.</li>
           <li>On <code>www.instagram.com</code> it adds a download button to video posts and reels from public accounts. It skips accounts that Instagram marks as private. The page script reads only the address of the post, and only when you click the button.</li>
+          <li>On Vimeo, X, TikTok, Twitch, Facebook, Reddit and Dailymotion it shows a small button in the corner of videos. The page script reads only the address of the video, and only when you click the chip.</li>
+          <li>On any other site, the chip appears only if you switch it on for that site in the popup. The browser then asks for access to that one site (an optional permission, together with the <code>scripting</code> permission), and you can turn it off again at any time. Sites you have not switched on are never read.</li>
           <li>It uses the <code>nativeMessaging</code> permission only to ask the Katevazo app on your own computer whether it is installed. The app answers with its version number; nothing else is exchanged, and nothing leaves your computer.</li>
         </ul>
 

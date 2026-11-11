@@ -9,7 +9,7 @@ const WHAT = [
   { icon: "link", title: "Send any page or link", text: "Click the toolbar button to send the page you are on, or right-click a link and choose Send link to Katevazo." },
   { icon: "download", title: "YouTube buttons", text: "Adds a download button to the video player's control bar and a Download button beside Share on Shorts." },
   { icon: "video", title: "Instagram buttons", text: "Adds a download icon after Share on reels and video posts from public accounts. Private accounts are skipped." },
-  { icon: "video", title: "A chip on other sites", text: "On Vimeo, X, TikTok, Twitch, Facebook, Reddit and Dailymotion, a small Katevazo chip appears just above the video while your pointer is on it, never over the picture or the site’s own controls. Click it to send that video to the app." },
+  { icon: "video", title: "A chip on other sites", text: "On Vimeo, X, TikTok, Twitch, Facebook, Reddit and Dailymotion, a small Katevazo button appears in the video's corner while your pointer is on it, never over the picture or the site’s own controls. Click it to send that video to the app. For any other site that yt-dlp supports, open the toolbar popup and switch on the chip for that site." },
   { icon: "shield", title: "Private by design", text: "No analytics, no tracking, and no network requests of its own. Links go only to the app on your computer." },
 ] as const;
 
@@ -18,6 +18,9 @@ const PERMISSIONS = [
   ["contextMenus", "Adds the Send link to Katevazo entry to the right-click menu."],
   ["nativeMessaging", "Asks the Katevazo app on your own computer whether it is installed. The reply is only a version number."],
   ["youtube.com and instagram.com", "Lets the extension place its download buttons on those pages and read the address of the video you are watching."],
+  ["Vimeo, X, TikTok, Twitch, Facebook, Reddit, Dailymotion", "Lets the extension show its small button on videos there and read the address of the video, only when you click the chip."],
+  ["Any other site, only if you ask", "Optional. In the popup you can turn the chip on for one site at a time; the browser then asks you to allow that site. Nothing is read on sites you have not turned on."],
+  ["scripting", "Adds the chip to a site you turned it on for."],
 ];
 
 export function Extension() {
