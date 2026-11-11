@@ -19,6 +19,7 @@ import {
 } from "../../lib/api";
 import { useApp } from "../../lib/app";
 import { useEngine } from "../../lib/engine";
+import { useUpdate } from "../../lib/updater";
 import { LANGUAGES, resolveLanguage, useLang, useT, type Key } from "../../lib/i18n";
 import styles from "./SettingsView.module.scss";
 
@@ -52,6 +53,7 @@ export function SettingsView() {
   const [settings, setLocal] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const engine = useEngine((s) => s.status);
+  const update = useUpdate((s) => s.status);
   const [template, setTemplate] = useState("");
   const [templateError, setTemplateError] = useState<string | null>(null);
   const [proxy, setProxy] = useState("");
@@ -474,7 +476,21 @@ export function SettingsView() {
               {t("whatsnew.open")}
             </button>
           </div>
+          <div className={styles.row}>
+            <div className={styles.label}>
+              <span>{t("set.updates")}</span>
+            </div>
+            <small className={styles.engineState} data-tone={update.state}>
+              {update.state === "checking" && t("set.updateChecking")}
+              {update.state === "current" && t("set.updateCurrent")}
+              {update.state === "downloading" && t("set.updateDownloading", { version: update.version })}
+              {update.state === "ready" && t("set.updateReady", { version: update.version })}
+              {update.state === "installing" && t("update.installing")}
+              {update.state === "failed" && t("set.updateFailed")}
+            </small>
+          </div>
         </div>
+        <p className={styles.footnote}>{t("set.updateHint")}</p>
       </section>
       {error && <p className={styles.error}>{error}</p>}
     </div>

@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Katevazo now updates itself. It checks for a new version shortly after launch and every few hours, downloads it in the background, and shows a banner with **Restart to update**. Nothing is installed until you click it, and running downloads are named before they are interrupted. Settings shows the update status. Updates are signed and hosted on GitHub Releases.
+
 ### Changed
 
 - yt-dlp now updates itself every time Katevazo starts, so downloads keep working when sites change. The Check for Updates button and the Update yt-dlp command are gone.

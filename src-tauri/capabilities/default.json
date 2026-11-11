@@ -9,6 +9,8 @@
     "core:default",
     "opener:default",
     "deep-link:default",
+    "updater:default",
+    "process:allow-restart",
     "dialog:allow-open",
     "clipboard-manager:allow-read-text",
     "core:window:allow-minimize",

@@ -1,6 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 import { EngineBanner } from "./components/EngineBanner";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { Toast } from "./components/Toast";
 import { CommandPalette } from "./features/palette/CommandPalette";
 import { ShortcutsHelp } from "./features/palette/ShortcutsHelp";
@@ -21,6 +22,7 @@ import { SettingsView } from "./features/settings/SettingsView";
 import { SubscriptionsView } from "./features/subscriptions/SubscriptionsView";
 import { applyTheme, getSettings, takePendingLinks } from "./lib/api";
 import { listenEngine, useEngine, whenEngineReady } from "./lib/engine";
+import { startUpdateChecks } from "./lib/updater";
 
 const NAV: { id: Tab; icon: IconName }[] = [
   { id: "Downloads", icon: "save" },
@@ -47,6 +49,7 @@ function App() {
     document.documentElement.dataset.platform = platform;
     const unlisten = listenForUpdates();
     const unlistenEngine = listenEngine();
+    const stopUpdateChecks = startUpdateChecks();
     getSettings()
       .then((s) => {
         applyTheme(s.theme);
@@ -56,6 +59,7 @@ function App() {
     return () => {
       void unlisten.then((fn) => fn());
       void unlistenEngine.then((fn) => fn());
+      stopUpdateChecks();
     };
   }, []);
 
@@ -126,6 +130,7 @@ function App() {
           {!isMac && <WindowControls platform={platform} />}
         </header>
         <EngineBanner />
+        <UpdateBanner />
         <ToolbarSlotContext.Provider value={slot}>
           <main className={styles.content}>
             {/* Kept mounted (just hidden) so the pasted URL and queue survive tab switches. */}

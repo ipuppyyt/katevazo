@@ -27,6 +27,15 @@
     }
   },
   "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQxQjRGRDgyREI3QTgyODcKUldTSGducmJndjIwMFl3Ujd4bXVQbDBBZlRVSGlkaitqcTBRQzdNQjlnR0FySGJaZ05IWTBnTVAK",
+      "endpoints": [
+        "https://github.com/ipuppyyt/katevazo/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    },
     "deep-link": {
       "desktop": {
         "schemes": ["katevazo"]
@@ -35,6 +44,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "externalBin": [
       "binaries/yt-dlp",
