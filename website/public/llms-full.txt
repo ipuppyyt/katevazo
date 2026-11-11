@@ -37,8 +37,8 @@ Send to Katevazo is a free browser extension for Chrome and Edge (and other Chro
 - Edge Add-ons: https://microsoftedge.microsoft.com/addons/detail/send-to-katevazo/gdccmcbmdllamcdodbllkkgfheehgijc
 - On YouTube it adds a download button to the player and a Download button beside Share on Shorts.
 - On Instagram it adds a download icon after Share on reels and video posts from public accounts. Private accounts are skipped.
-- On Vimeo, X, TikTok, Twitch, Facebook, Reddit and Dailymotion it shows a small download button in the corner of videos that sends the video to the app.
-- For any other site yt-dlp supports, the toolbar popup has a switch that turns the chip on for that one site; the browser asks for permission for that site only.
+- On Vimeo, Twitch (videos and clips, not live streams) and Facebook videos it adds a download button to the player's controls; on TikTok and Facebook reels, to the row of buttons beside the video; on X, Reddit and Dailymotion, a small button in the video's corner. Each sends the video to the app.
+- For any other site yt-dlp supports, the toolbar popup has a switch that turns the button on for that one site; the browser asks for permission for that site only.
 - The toolbar popup shows whether the app is installed and ready.
 - It needs the Katevazo app installed. Open the app once after installing or updating so it registers with your browsers.
 - Permissions: activeTab (reads the current tab's title and address only when you click the button), contextMenus (the right-click entry), nativeMessaging (asks the local app whether it is installed; the reply is only a version number), scripting (adds the chip to sites you turned it on for), access to youtube.com, instagram.com and the seven sites above for its buttons, and optional access to any other single site you switch it on for.
