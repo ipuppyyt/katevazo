@@ -6,6 +6,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-11
+
 ### Added
 
 - Katevazo now updates itself. It checks for a new version shortly after launch and every few hours, downloads it in the background, and shows a banner with **Restart to update**. Nothing is installed until you click it, and running downloads are named before they are interrupted. Settings shows the update status. Updates are signed and hosted on GitHub Releases.
@@ -139,7 +141,8 @@ First public release.
 - The progress bar no longer jumps up and down when video and audio are downloaded as
   separate streams, and it stays put across pauses.
 
-[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/ipuppyyt/katevazo/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/ipuppyyt/katevazo/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/ipuppyyt/katevazo/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/ipuppyyt/katevazo/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/ipuppyyt/katevazo/compare/v0.5.0...v0.5.1
