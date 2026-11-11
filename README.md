@@ -10,9 +10,15 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/ipuppyyt/katevazo/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ipuppyyt/katevazo?label=release&color=blue" /></a>
+  <a href="https://github.com/ipuppyyt/katevazo/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/ipuppyyt/katevazo/total?label=downloads&color=brightgreen" /></a>
   <a href="https://github.com/ipuppyyt/katevazo/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ipuppyyt/katevazo/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://github.com/ipuppyyt/katevazo/actions/workflows/release.yml"><img alt="Release build" src="https://github.com/ipuppyyt/katevazo/actions/workflows/release.yml/badge.svg" /></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
   <img alt="Platforms" src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey" />
+  <a href="https://v2.tauri.app"><img alt="Built with Tauri 2" src="https://img.shields.io/badge/Tauri-2-24c8db?logo=tauri&logoColor=white" /></a>
+  <a href="https://github.com/ipuppyyt/katevazo/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/ipuppyyt/katevazo?style=flat&logo=github" /></a>
+  <a href="https://ipuppyyt.github.io/katevazo/"><img alt="Website" src="https://img.shields.io/badge/website-katevazo-blueviolet" /></a>
 </p>
 
 > *Katevazo* comes from the Greek κατέβασε, "download".
@@ -26,7 +32,7 @@ Website: <https://ipuppyyt.github.io/katevazo/>
 - A queue that runs several downloads at once, with live progress, speed and time remaining
 - A single, steady progress bar even when video and audio are fetched as separate streams
 - Download history, a configurable save folder, and light, dark or system appearance
-- One-click yt-dlp updates from inside the app, so downloads keep working when sites change
+- yt-dlp updates itself every time the app starts, and the app updates itself too, so downloads keep working when sites change
 - Drag and drop links, a command palette (Ctrl/Cmd+K), a system tray with a Ctrl/Cmd+Shift+D quick-add shortcut, `katevazo://` links and a [browser extension](extension/README.md)
 - Interface in English (default), Spanish, French, German, Portuguese, Italian, Japanese and Simplified Chinese
 - A native-feeling Apple-style interface that follows each platform's window conventions
@@ -119,7 +125,7 @@ a tour of the code.
 
 ## Roadmap
 
-- [ ] In-app auto-update for Katevazo itself
+- [x] In-app auto-update for Katevazo itself
 - [ ] Playlist and batch downloads
 - [ ] Subtitle, format and filename-template options
 - [ ] Installers for Windows ARM and Intel macOS

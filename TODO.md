@@ -44,7 +44,7 @@ is merged. Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Distribution and trust
 
-- [ ] In-app auto-update (needs a signing key and update endpoint)
+- [x] In-app auto-update (signed updates from GitHub Releases)
 - [ ] Code signing and notarisation (wired up in CI, waiting on certificates; see [docs/SIGNING.md](docs/SIGNING.md))
 - [ ] Intel Mac and Windows ARM builds
 - [ ] winget, Homebrew cask and Flathub packages
