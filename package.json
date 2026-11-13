@@ -34,7 +34,7 @@
     "lucide-react": "^1.66.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zustand": "^5.0.16"
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
